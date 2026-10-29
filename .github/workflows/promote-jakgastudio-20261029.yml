@@ -1,0 +1,77 @@
+name: One-time production promotion of tested site
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/promote-jakgastudio-20261029.yml'
+permissions:
+  contents: write
+jobs:
+  promote:
+    if: github.event.head_commit.message == 'Prepare one-time production promotion from verified test build'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout existing production repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: true
+          ref: main
+      - name: Copy verified source and assets without deleting production media
+        shell: bash
+        env:
+          STAGING_COMMIT: '42ac59636bf7767ec75615dedf2ae3cc69f913b3'
+        run: |
+          set -euo pipefail
+          git clone --quiet --depth 1 https://github.com/jeong1pumho/jakgastudio-temp.git /tmp/jakgastudio-tested
+          git -C /tmp/jakgastudio-tested fetch --quiet --depth 1 origin "$STAGING_COMMIT"
+          git -C /tmp/jakgastudio-tested checkout --quiet --detach "$STAGING_COMMIT"
+          test "$(git -C /tmp/jakgastudio-tested rev-parse HEAD)" = "$STAGING_COMMIT"
+          test "$(stat -c %s /tmp/jakgastudio-tested/assets/keyvisual-qhd.mp4)" = '1545885'
+          test "$(sha256sum /tmp/jakgastudio-tested/assets/keyvisual-qhd.mp4 | cut -d' ' -f1)" = 'aa2a0095a41efc5d9535b27b7030426b914ed1ed8edcbba9e9542df1a9023e7a'
+          mkdir -p admin api lib assets
+          cp /tmp/jakgastudio-tested/index.html ./index.html
+          cp /tmp/jakgastudio-tested/admin/index.html ./admin/index.html
+          cp /tmp/jakgastudio-tested/api/*.js ./api/
+          cp /tmp/jakgastudio-tested/lib/*.js ./lib/
+          cp -a /tmp/jakgastudio-tested/assets/. ./assets/
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          page=Path('index.html')
+          html=page.read_text(encoding='utf-8')
+          assert 'https://jakgastudio.co.kr' in html
+          assert 'assets/keyvisual-qhd.mp4' in html
+          assert 'id="hours"' in html and 'id="news"' in html
+          html=html.replace('https://jakgastudio.co.kr', 'https://jakgastudio.com')
+          page.write_text(html,encoding='utf-8')
+          news=Path('api/news-page.js')
+          script=news.read_text(encoding='utf-8')
+          assert "res.setHeader('X-Robots-Tag','noindex, nofollow');" in script
+          assert 'content="noindex,nofollow"' in script
+          script=script.replace("res.setHeader('X-Robots-Tag','noindex, nofollow');",'')
+          script=script.replace('content="noindex,nofollow"','content="index,follow"')
+          news.write_text(script,encoding='utf-8')
+          prod_vercel={
+            'version':2,
+            'rewrites':[
+              {'source':'/news','destination':'/api/news-page'},
+              {'source':'/news/:slug','destination':'/api/news-page'},
+              {'source':'/admin','destination':'/admin/index.html'}
+            ],
+            'headers':[
+              {'source':'/admin/(.*)','headers':[{'key':'X-Robots-Tag','value':'noindex, nofollow, noarchive'}]},
+              {'source':'/api/(.*)','headers':[{'key':'X-Robots-Tag','value':'noindex, nofollow, noarchive'}]}
+            ]
+          }
+          Path('vercel.json').write_text(json.dumps(prod_vercel,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          assert 'noindex' not in Path('vercel.json').read_text().split('"headers":')[0]
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html vercel.json admin/ api/ lib/ assets/
+          if git diff --cached --quiet; then
+            echo 'No differences; promotion already present'
+          else
+            git commit -m "Release verified NEWS CMS and homepage from jakgastudio-temp"
+            git push origin HEAD:main
+          fi
