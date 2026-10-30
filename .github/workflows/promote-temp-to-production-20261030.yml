@@ -14,12 +14,13 @@ jobs:
         with:
           persist-credentials: true
           ref: main
+          fetch-depth: 2
       - name: Copy verified test source preserving production-only assets
         shell: bash
         run: |
           set -euo pipefail
           expected_test_sha="e67066fbe081bc49a9d51422e1b65c5b5218bc4a"
-          expected_prod_parent="7c45630fe9a57e0995e0a5ddb1c62c2cc802dc2f"
+          expected_prod_parent="7c9c998b73dc79fbadae58b9b00522ec73b41644"
           test "$(git rev-parse HEAD^)" = "$expected_prod_parent" || { echo "Unexpected production base"; exit 1; }
           git clone --depth=1 --branch main https://github.com/jeong1pumho/jakgastudio-temp.git /tmp/jakgastudio-release
           actual_test_sha="$(git -C /tmp/jakgastudio-release rev-parse HEAD)"
