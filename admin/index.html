@@ -13,7 +13,11 @@ button,input,select,textarea{font:inherit}
 button{cursor:pointer}
 [hidden]{display:none!important}
 .container{max-width:1130px;margin:0 auto;padding:32px 22px 80px}
-.site-header{display:flex;justify-content:space-between;align-items:center;gap:14px;border-bottom:1px solid var(--edge);padding:6px 0 26px;margin-bottom:32px}
+.site-header{display:flex;justify-content:space-between;align-items:center;gap:14px;border-bottom:1px solid var(--edge);padding:14px 12px;margin-bottom:32px;position:sticky;top:0;z-index:50;background:var(--paper,#f7f5f1);box-shadow:0 4px 14px rgba(40,32,25,.06)}
+.admin-global-nav{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.admin-nav-link{padding:9px 12px;border-radius:4px;text-decoration:none;font-size:13px;white-space:nowrap;color:var(--muted,#817970);border:1px solid transparent}
+.admin-nav-link:hover{background:#eee7e0;color:#38322e}
+.admin-nav-link.is-active{border-color:#c9b5a5;background:#f1e7dd;color:#463427;font-weight:700}
 .wordmark{font-size:20px;font-weight:600;letter-spacing:-.04em}.wordmark small{font-size:11px;color:var(--muted);font-weight:400;letter-spacing:0;margin-left:12px}
 a{color:inherit}.site-header a{text-decoration:none}
 .panel{background:white;border:1px solid var(--edge);border-radius:7px;padding:32px}
@@ -61,7 +65,7 @@ tbody tr:last-child td{border-bottom:0}
 .login-box{max-width:420px;margin:65px auto 0}.login-box h1{margin-bottom:10px}.login-box button{width:100%;margin-top:6px}
 .list-head-actions{display:flex;gap:8px;align-items:center}
 @media(max-width:800px){.container{padding:18px 14px 55px}.panel{padding:22px 16px}.wordmark small{display:none}.page-heading{align-items:flex-start;gap:12px}h1{font-size:23px}.form-grid{grid-template-columns:1fr}.photos{grid-template-columns:repeat(2,minmax(0,1fr))}table{min-width:670px}.toolbar .filter{width:100%}}
-@media(max-width:470px){.page-heading{flex-direction:column;align-items:stretch}.list-head-actions{justify-content:space-between}.page-heading .btn{align-self:stretch}.photos{grid-template-columns:1fr}.site-header{gap:8px}.wordmark{font-size:18px}}
+@media(max-width:470px){.site-header{flex-direction:column;align-items:stretch;padding:12px 7px}.admin-global-nav{justify-content:space-between}.admin-nav-link{padding:8px 9px}.page-heading{flex-direction:column;align-items:stretch}.list-head-actions{justify-content:space-between}.page-heading .btn{align-self:stretch}.photos{grid-template-columns:1fr}.site-header{gap:8px}.wordmark{font-size:18px}}
 
 /* Rich editor and drag-and-drop image upload */
 .visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
@@ -119,13 +123,26 @@ tbody tr:last-child td{border-bottom:0}
 .editor-color-box input[type=color]{width:38px;height:33px;border:1px solid #dfd9d2;border-radius:3px;padding:2px;background:#fff;cursor:pointer}
 .editor-color-box input[type=text]{width:83px;height:33px;border:1px solid #dfd9d2;border-radius:3px;padding:5px;font-size:12px;background:#fff;color:#42352c}
 #localFontsButton{font-size:12px}
+
+/* Optional event date / date-range editor (independent of scheduling). */
+.date-panel{border:1px solid var(--edge);border-radius:6px;background:#fbfaf8;padding:18px 20px}
+.date-panel .date-note{font-size:12px;color:var(--muted);margin:9px 0 0;line-height:1.6}
+.date-fields{margin-top:14px}
+.date-fields .form-row{margin-bottom:0}
+.date-clear{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px}
+.date-clear .note{margin:0}
+@media(max-width:800px){.date-panel{padding:16px}.date-fields{gap:12px}}
 </style>
 </head>
 <body>
 <div class="container">
 <header class="site-header">
-  <a class="wordmark" href="/#news">작가작업실 JEJU <small>운영 소식 관리자</small></a>
-  <button type="button" class="btn ghost small" id="logout" hidden>로그아웃</button>
+  <a class="wordmark" href="/#news">작가작업실 JEJU <small>관리자</small></a>
+  <nav class="admin-global-nav" aria-label="관리자 메뉴">
+    <a href="/admin/" class="admin-nav-link is-active" aria-current="page">소식 관리</a>
+    <a href="/admin/schedule.html" class="admin-nav-link">스케줄 관리</a>
+    <button type="button" class="btn ghost small" id="logout" hidden>로그아웃</button>
+  </nav>
 </header>
 <p id="message" class="status" role="status" aria-live="polite"></p>
 
@@ -142,7 +159,7 @@ tbody tr:last-child td{border-bottom:0}
 <section id="listView" hidden>
   <div class="page-heading">
     <div><h1>운영 소식 관리</h1><p class="subline">등록한 게시물을 검색하고 수정·삭제할 수 있습니다.</p></div>
-    <div class="list-head-actions"><button type="button" class="btn" id="newBtn">+ 새 소식 등록</button></div>
+    <div class="list-head-actions"><a class="btn secondary" href="/admin/schedule.html">스케줄 관리</a><button type="button" class="btn" id="newBtn">+ 새 소식 등록</button></div>
   </div>
   <div class="panel">
     <div class="toolbar">
@@ -168,6 +185,28 @@ tbody tr:last-child td{border-bottom:0}
       <input id="postId" type="hidden">
       <div class="form-row"><label class="label" for="title">소식 제목</label><input class="field" id="title" required minlength="2" maxlength="150"></div>
       <div class="form-row"><label class="label" for="slug">상세페이지 주소 (영문, 선택사항)</label><input class="field" id="slug" placeholder="비워 두면 자동 생성" pattern="[a-z0-9]+(-[a-z0-9]+)*"><p class="note">기존 글을 수정할 때는 주소를 변경하지 않는 편이 좋습니다.</p></div>
+      <div class="form-row date-panel">
+        <label class="label" for="dateMode">게시물 날짜 (선택)</label>
+        <select class="field" id="dateMode">
+          <option value="none">날짜 표시 안 함</option>
+          <option value="day">하루 날짜 지정</option>
+          <option value="range">기간 지정 (시작일 ~ 종료일)</option>
+        </select>
+        <div class="form-grid date-fields" id="dateFields" hidden>
+          <div class="form-row">
+            <label class="label" for="eventDateStart">날짜 / 시작일</label>
+            <input class="field" type="date" id="eventDateStart">
+          </div>
+          <div class="form-row" id="dateEndWrap" hidden>
+            <label class="label" for="eventDateEnd">종료일</label>
+            <input class="field" type="date" id="eventDateEnd">
+          </div>
+        </div>
+        <div class="date-clear">
+          <p class="note">입력한 날짜만 NEWS 목록·상세페이지에 표시됩니다. 스케줄과는 연동되지 않습니다.</p>
+          <button type="button" class="btn secondary small" id="clearEventDate">날짜 삭제</button>
+        </div>
+      </div>
       <div class="form-row">
         <label class="label" for="files">사진 등록 · 최대 20장</label>
         <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="사진을 드래그하거나 클릭해서 추가">
@@ -249,11 +288,13 @@ tbody tr:last-child td{border-bottom:0}
 </section>
 </div>
 
+<script src="/assets/admin-session.js"></script>
 <script>
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
   let token = '';
+  const sharedSession=window.JAKAdminSession;
   let posts = [];
   let imgs = [];
   let cover = 0;
@@ -277,7 +318,7 @@ tbody tr:last-child td{border-bottom:0}
     try { r = await fetch(path, { ...o, headers }); }
     catch { throw Error('서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요.'); }
     const body = await r.json().catch(() => ({}));
-    if(!r.ok) throw Error(body.error || '요청 실패 (HTTP ' + r.status + ')');
+    if(!r.ok){const err=Error(body.error || '요청 실패 (HTTP ' + r.status + ')');err.status=r.status;throw err;}
     return body;
   }
   const el = (tag, cls, txt) => {
@@ -292,6 +333,27 @@ tbody tr:last-child td{border-bottom:0}
     if(!Number.isFinite(d.getTime())) return '-';
     return new Intl.DateTimeFormat('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(d);
   }
+
+  function displayEventDate(p) {
+    if(!p.event_date_start)return '';
+    const fmt=v=>String(v).replace(/-/g,'.');
+    return fmt(p.event_date_start)+(p.event_date_end?' ~ '+fmt(p.event_date_end):'');
+  }
+  function syncDateFields() {
+    const mode=$('dateMode').value;
+    $('dateFields').hidden=mode==='none';
+    $('dateEndWrap').hidden=mode!=='range';
+    $('eventDateStart').required=mode!=='none';
+    $('eventDateEnd').required=mode==='range';
+  }
+  $('dateMode').addEventListener('change',syncDateFields);
+  $('clearEventDate').addEventListener('click',()=>{
+    $('dateMode').value='none';
+    $('eventDateStart').value='';
+    $('eventDateEnd').value='';
+    syncDateFields();
+    message('날짜 표시가 해제되었습니다. 저장하면 게시물에서도 삭제됩니다.');
+  });
   function filterList() {
     const term = $('search').value.trim().toLocaleLowerCase('ko');
     const state = $('filter').value;
@@ -318,6 +380,7 @@ tbody tr:last-child td{border-bottom:0}
         } else info.appendChild(el('div','cover empty','사진 없음'));
         const desc = el('div');
         desc.appendChild(el('div','post-title',p.title));
+        if(displayEventDate(p))desc.appendChild(el('div','post-sub','날짜: '+displayEventDate(p)));
         desc.appendChild(el('div','post-sub','사진 ' + (p.images?.length || 0) + '장'));
         info.appendChild(desc); td0.appendChild(info); tr.appendChild(td0);
         const td1 = el('td');
@@ -378,6 +441,10 @@ tbody tr:last-child td{border-bottom:0}
     $('postId').value = '';
     $('sort').value = 0;
     $('status').value='ongoing';
+    $('dateMode').value='none';
+    $('eventDateStart').value='';
+    $('eventDateEnd').value='';
+    syncDateFields();
     imgs=[];cover=0;renderPhotos();
   }
   function newPost() {
@@ -396,6 +463,10 @@ tbody tr:last-child td{border-bottom:0}
     else $('content').textContent=p.content||'';
     $('status').value=p.status||'ongoing';
     $('sort').value=p.sort_order||0;
+    $('dateMode').value=p.event_date_start?(p.event_date_end?'range':'day'):'none';
+    $('eventDateStart').value=p.event_date_start||'';
+    $('eventDateEnd').value=p.event_date_end||'';
+    syncDateFields();
     imgs=Array.isArray(p.images)?p.images.slice(0,20):[];
     cover=Math.max(0,Math.min(Number(p.cover_index)||0,imgs.length-1));
     renderPhotos();
@@ -419,7 +490,7 @@ tbody tr:last-child td{border-bottom:0}
   $('backBtn').addEventListener('click',() => {message('');show('listView');});
   $('cancelBtn').addEventListener('click',() => {message('');show('listView');});
   $('logout').addEventListener('click',() => {
-    token='';posts=[];imgs=[];cover=0;
+    token='';sharedSession?.clear();posts=[];imgs=[];cover=0;
     $('password').value='';$('listArea').replaceChildren();
     message('로그아웃했습니다.');show('loginView');
   });
@@ -430,6 +501,7 @@ tbody tr:last-child td{border-bottom:0}
     try {
       const r = await api('/api/admin',{method:'POST',body:JSON.stringify({action:'login',email:$('email').value.trim(),password:$('password').value})});
       token = r.token;
+      sharedSession?.save(r.token,r.expires_in);
       $('password').value='';
       show('listView');message('');
       await loadPosts();
@@ -439,8 +511,129 @@ tbody tr:last-child td{border-bottom:0}
     } finally { $('loginBtn').disabled=false; }
   });
 
-  // Native contenteditable is intentionally self-contained; server sanitizes accepted markup.
+  // Rich text editor: safe clipboard conversion keeps pasted text editable.
   const editor=$('content');
+  // Convert Word, Google Docs, web pages and plain-text clipboard content into
+  // the limited safe HTML supported by both the editor and server sanitizer.
+  // Notepad has no text styling to preserve, but its paragraphs remain fully editable.
+  const escapePaste=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const pasteFontNames=[
+   [/맑은\s*고딕|malgun\s*gothic/i,'malgun'],
+   [/나눔\s*고딕|nanum\s*gothic/i,'nanum-gothic'],
+   [/나눔\s*명조|nanum\s*myeongjo/i,'nanum-myeongjo'],
+   [/본고딕|noto\s*sans/i,'noto-sans'],
+   [/본명조|noto\s*serif/i,'noto-serif'],
+   [/카카오|kakao/i,'kakao'],
+   [/gowun\s*dodum/i,'gowun-dodum'],
+   [/gowun\s*batang/i,'gowun-batang'],
+   [/ibm\s*plex/i,'ibm-plex'],
+   [/gothic\s*a1/i,'gothic-a1']
+  ];
+  function pasteColor(input){
+   const s=String(input||'').trim();
+   if(/^#[0-9a-f]{6}$/i.test(s))return s.toLowerCase();
+   if(/^#[0-9a-f]{3}$/i.test(s))return '#'+[...s.slice(1)].map(x=>x+x).join('').toLowerCase();
+   const rgb=s.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*[\d.]+)?\s*\)$/i);
+   if(rgb&&rgb.slice(1,4).every(n=>Number(n)<=255))
+    return '#'+rgb.slice(1,4).map(n=>Number(n).toString(16).padStart(2,'0')).join('');
+   return '';
+  }
+  function pasteSize(value){
+   const v=String(value||'').trim().match(/^(\d+(?:\.\d+)?)\s*(px|pt)$/i);
+   if(!v)return '';
+   const n=Math.round(Number(v[1])*(v[2].toLowerCase()==='pt'?4/3:1));
+   return n>=10&&n<=72?String(n):'';
+  }
+  function pastedHtmlToEditor(html){
+   const body=new DOMParser().parseFromString(String(html),'text/html').body;
+   const omit=new Set(['script','style','head','meta','iframe','object','embed','svg','math','canvas','video','audio','img','form','input','button','select','textarea']);
+   const safeTags=new Set(['strong','b','em','i','u','s','ul','ol','li']);
+   const structural=new Set(['p','div','h1','h2','h3','h4','h5','h6','blockquote']);
+   function convert(node){
+    if(node.nodeType===Node.TEXT_NODE)return escapePaste(node.nodeValue);
+    if(node.nodeType!==Node.ELEMENT_NODE)return '';
+    const tag=node.tagName.toLowerCase();
+    if(omit.has(tag))return '';
+    if(tag==='br')return '<br>';
+    const children=[...node.childNodes].map(convert).join('');
+    if(tag==='a'){
+     const raw=node.getAttribute('href')||'';
+     try{
+      const url=new URL(raw);
+      if(['https:','http:','mailto:'].includes(url.protocol))
+       return '<a href="'+escapePaste(url.href)+'">'+children+'</a>';
+     }catch{}
+     return children;
+    }
+    let output=children;
+    // Apply inline styles inside block/list elements so pasted Word markup
+    // remains valid HTML; block tags cannot be children of a span/strong.
+    const block=structural.has(tag)?(tag==='h1'?'h2':(['h2','h3'].includes(tag)?tag:'p')):'';
+    const align=node.style.textAlign||node.getAttribute('align')||'';
+    const alignStyle=/^(left|center|right|justify)$/i.test(align)?' style="text-align:'+align.toLowerCase()+'"':'';
+    if(safeTags.has(tag)&&!['ul','ol','li'].includes(tag))output='<'+tag+'>'+output+'</'+tag+'>';
+    else if(tag==='td'||tag==='th')output=output+' ';
+    else if(tag==='hr')output='<br>';
+    // Convert inline formatting stored in CSS (common in Word/Google Docs).
+    const size=pasteSize(node.style.fontSize);
+    const color=pasteColor(node.style.color||node.getAttribute('color'));
+    const family=node.style.fontFamily||node.getAttribute('face')||'';
+    const font=pasteFontNames.find(([regex])=>regex.test(family))?.[1]||'';
+    const attrs=[];
+    if(font)attrs.push('data-font="'+font+'"');
+    const declarations=[];
+    if(size)declarations.push('font-size:'+size+'px');
+    if(color)declarations.push('color:'+color);
+    if(declarations.length)attrs.push('style="'+declarations.join(';')+'"');
+    if(attrs.length)output='<span '+attrs.join(' ')+'>'+output+'</span>';
+    const weight=node.style.fontWeight;
+    if(weight==='bold'||(Number(weight)>=600))output='<strong>'+output+'</strong>';
+    if(node.style.fontStyle==='italic'||node.style.fontStyle==='oblique')output='<em>'+output+'</em>';
+    if(node.style.textDecorationLine.includes('underline'))output='<u>'+output+'</u>';
+    if(block)output='<'+block+alignStyle+'>'+(output||'<br>')+'</'+block+'>';
+    else if(['ul','ol','li'].includes(tag))output='<'+tag+'>'+output+'</'+tag+'>';
+    else if(tag==='tr')output='<p>'+output+'</p>';
+    return output;
+   }
+   return [...body.childNodes].map(convert).join('');
+  }
+  function plainTextToEditor(text){
+    return String(text||'').replace(/\r\n?/g,'\n').split('\n')
+      .map(line=>'<p>'+(line?escapePaste(line):'<br>')+'</p>').join('');
+  }
+  function insertSafePaste(markup){
+    const active=currentEditorRange();
+    editor.focus();
+    if(document.execCommand('insertHTML',false,markup))return;
+    // Fallback for browsers where execCommand returns false.
+    const sel=window.getSelection();
+    const range=active||document.createRange();
+    if(!active){range.selectNodeContents(editor);range.collapse(false);}
+    range.deleteContents();
+    const fragment=range.createContextualFragment(markup);
+    const last=fragment.lastChild;
+    range.insertNode(fragment);
+    if(last){
+      const caret=document.createRange();caret.setStartAfter(last);caret.collapse(true);
+      sel.removeAllRanges();sel.addRange(caret);
+    }
+  }
+  editor.addEventListener('paste',event=>{
+    const clipboard=event.clipboardData;
+    if(!clipboard)return;
+    const html=clipboard.getData('text/html');
+    const plain=clipboard.getData('text/plain');
+    if(!html&&!plain)return;
+    event.preventDefault();
+    let markup=html?pastedHtmlToEditor(html):'';
+    if(!markup||!markup.replace(/<[^>]*>/g,'').trim())markup=plainTextToEditor(plain);
+    if(!markup)return;
+    insertSafePaste(markup);
+    selectedRange=null;
+    $('editorFormatHint').textContent='붙여넣기 완료. 글자를 선택하면 서식 도구를 적용할 수 있습니다. 외부 문서의 지원되는 서식만 유지됩니다.';
+  });
+
+
   document.querySelectorAll('[data-command]').forEach(btn => {
     btn.addEventListener('mousedown',e=>e.preventDefault());
     btn.addEventListener('click',()=>{
@@ -630,7 +823,12 @@ tbody tr:last-child td{border-bottom:0}
   $('editForm').addEventListener('submit', async e => {
     e.preventDefault();if(saving)return;
     const id=$('postId').value;
-    const payload={id,title:$('title').value.trim(),slug:$('slug').value.trim(),content:$('content').innerHTML,images:imgs.slice(),cover_index:cover,status:$('status').value,sort_order:Number($('sort').value)||0};
+    const mode=$('dateMode').value;
+    const start=mode==='none'?null:$('eventDateStart').value;
+    const end=mode==='range'?$('eventDateEnd').value:null;
+    if(mode!=='none'&&!start)return message('날짜를 선택해 주세요.',true);
+    if(mode==='range'&&(!end||end<start))return message('종료일은 시작일 이후로 설정해 주세요.',true);
+    const payload={id,title:$('title').value.trim(),slug:$('slug').value.trim(),content:$('content').innerHTML,images:imgs.slice(),cover_index:cover,status:$('status').value,sort_order:Number($('sort').value)||0,date_mode:mode,event_date_start:start,event_date_end:end};
     saving=true;$('saveBtn').disabled=true;message('게시물을 저장하는 중…');
     try {
       await api('/api/admin',{method:id?'PATCH':'POST',body:JSON.stringify(payload)});
@@ -639,7 +837,24 @@ tbody tr:last-child td{border-bottom:0}
     } catch(err) {message('저장 실패: '+err.message,true);}
     finally {saving=false;$('saveBtn').disabled=false;}
   });
-  show('loginView');
+  async function restoreAdminSession(){
+    show('loginView');
+    const saved=sharedSession?.read();
+    if(!saved)return;
+    token=saved;
+    try{
+      await loadPosts(); // GET /api/admin rechecks token and role.
+      show('listView');message('');
+    }catch(err){
+      if(err.status===401||err.status===403){
+        token='';sharedSession?.clear();
+        message('로그인이 만료되었습니다. 다시 로그인해 주세요.',true);
+      }else{
+        show('listView');message('기존 로그인은 유지됐지만 소식을 불러오지 못했습니다: '+err.message,true);
+      }
+    }
+  }
+  restoreAdminSession();
 }());
 </script>
 </body>

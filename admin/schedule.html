@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>스케줄 관리 | 작가작업실 JEJU</title>
+<style>
+:root{--ink:#35302c;--muted:#817970;--line:#e7e1d8;--accent:#9d765e;--bg:#f7f5f1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:15px;line-height:1.65}
+button,input,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}
+.container{max-width:1100px;padding:30px 20px 90px;margin:auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:15px;border-bottom:1px solid var(--line);padding:12px 16px;margin-bottom:32px;position:sticky;top:0;z-index:50;background:var(--bg);box-shadow:0 4px 14px rgba(40,32,25,.06)}
+.wordmark{font-size:19px;font-weight:650;letter-spacing:-.04em}
+.wordmark small{display:block;color:var(--muted);font-size:12px;font-weight:400;letter-spacing:0}
+.header-nav{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
+.header-nav a{padding:8px 12px;border:1px solid transparent;border-radius:4px;white-space:nowrap}
+.header-nav a:hover{background:#eee7e0}
+.header-nav a.is-active{background:#f1e7dd;border-color:#c9b5a5;font-weight:700;color:#463427}
+.card{background:#fff;border:1px solid var(--line);border-radius:7px;padding:26px}
+.login{max-width:440px;margin:50px auto}
+h1{font-size:28px;font-weight:600;letter-spacing:-.04em;margin:0 0 7px}
+h2{font-size:20px;font-weight:600;letter-spacing:-.035em;margin:0}
+.note{font-size:13px;color:var(--muted);line-height:1.65;margin:5px 0 22px}
+label{font-size:13px;font-weight:650;display:block;margin-bottom:7px}
+.field{border:1px solid #cbc2b9;background:white;border-radius:4px;width:100%;padding:11px 12px;color:var(--ink);min-width:0}
+.field:focus{outline:2px solid #ba987e;outline-offset:1px}
+.field-row{margin-bottom:19px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.btn{padding:10px 16px;background:#37312d;border:1px solid #37312d;color:white;border-radius:4px}
+.btn.secondary{background:#fff;border-color:#cfc7be;color:var(--ink)}
+.btn.danger{background:#fff;border-color:#d4a5a0;color:#a34339}
+.btn.small{font-size:12px;padding:6px 10px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.page-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:20px;flex-wrap:wrap}
+.toolbar .month-control{display:flex;align-items:center;gap:9px}
+.month-title{font-size:23px;font-weight:600;min-width:140px;text-align:center}
+.month-control button{height:36px;min-width:36px;padding:0 8px;font-size:19px}
+.status{min-height:26px;font-size:13px;margin:0 0 18px;color:#3e6548}
+.status.error{color:#ac4034}
+form .form-help{font-size:12px;margin:7px 0 0;color:var(--muted)}
+#scheduleFormPanel{margin-bottom:26px;border-color:#b6a08f}
+.edit-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:26px}
+.edit-actions{border-top:1px solid var(--line);padding-top:20px;margin-top:22px;display:flex;justify-content:space-between;gap:12px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;text-align:left}
+th,td{padding:13px 11px;border-bottom:1px solid var(--line)}
+th{background:#faf8f5;color:#81766e;font-size:12px;white-space:nowrap}
+td{font-size:14px;vertical-align:middle}
+td.title{font-weight:600;min-width:180px}
+td.time{white-space:nowrap;font-variant-numeric:tabular-nums}
+td.actions{white-space:nowrap}
+.tag{display:inline-block;font-size:12px;font-weight:650;padding:3px 8px;border-radius:3px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.tag.meeting{background:#f3e7e1;color:#955b48}.tag.rental{background:#e5eff3;color:#456e81}
+.tag.custom{background:#f0eaf3;color:#795682}.tag.closure{background:#eeece9;color:#79736e}
+.date-with-weekday{display:flex;gap:9px;align-items:center}
+.date-with-weekday .field{flex:1;min-width:0}
+.weekday-value{min-width:37px;text-align:center;font-size:14px;color:#645951;font-weight:600;white-space:nowrap}
+.time-field-note{font-size:12px;color:var(--muted);margin:7px 0 0}
+
+.empty{padding:48px 12px;text-align:center;color:var(--muted)}
+.footer-help{margin:18px 0 0;font-size:12px;color:#85776c}
+@media(max-width:650px){header{flex-direction:column;align-items:stretch;padding:12px 8px}.header-nav{justify-content:space-between}.header-nav a{padding:8px 7px}.page-head{align-items:flex-start;flex-direction:column}.container{padding:20px 12px 60px}.card{padding:18px}.grid{grid-template-columns:1fr;gap:0}.wordmark{font-size:16px}.header-nav{gap:9px}.edit-actions{flex-wrap:wrap}.month-title{font-size:20px}}
+/* Admin-only rich memo editor; public calendar never renders memo. */
+.memo-tools{display:flex;gap:5px;align-items:center;flex-wrap:wrap;background:#faf8f5;padding:9px 10px;border:1px solid #cbc2b9;border-bottom:0;border-radius:4px 4px 0 0}
+.memo-tools button{border:1px solid #e1d9d0;border-radius:4px;background:#fff;padding:5px 12px;font-size:13px;min-width:32px}
+.memo-tools button:hover{background:#eee8e1}
+.memo-editor{min-height:150px;padding:14px;border:1px solid #cbc2b9;border-radius:0 0 4px 4px;outline-offset:2px;background:#fff;line-height:1.7;font-size:14px;overflow-wrap:anywhere}
+.memo-editor:focus{outline:2px solid #ba987e;border-color:transparent}
+.memo-editor:empty:before{content:attr(data-placeholder);color:#9c948b;pointer-events:none}
+.memo-editor p{margin:7px 0}
+.memo-editor ul,.memo-editor ol{padding-left:23px}
+#schedule .sc-actions{gap:7px}
+#schedule .sc-admin-tools{margin:0 0 19px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#schedule .sc-admin-event-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+#schedule .sc-admin-memo{border-top:1px solid #e9e3db;margin-top:14px;padding-top:14px;line-height:1.75;font-size:14px;color:#4a4540;overflow-wrap:anywhere}
+#schedule .sc-admin-memo p{margin:5px 0}
+#schedule .sc-admin-memo ul,#schedule .sc-admin-memo ol{padding-left:24px}
+#schedule .sc-admin-memo a{color:#84654e;text-decoration:underline}
+#schedule .sc-admin-memo-title{font-size:12px;font-weight:650;color:#8b7665;margin:0 0 8px}
+#schedule .sc-toolbar{margin-bottom:20px}
+#schedule .sc-info{padding:0}
+#schedule .sc-detail-notice{font-size:13px;color:#776b61;margin:11px 0}
+#schedule .sc-detail-title{word-break:break-word}
+#schedule .sc-day.is-selected{box-shadow:inset 0 0 0 2px #ac8b73}
+@media(max-width:700px){#schedule .sc-top{flex-wrap:wrap;gap:8px}#schedule .sc-frame{border-radius:4px}}
+</style>
+<link rel="stylesheet" href="/assets/schedule.css">
+</head>
+<body>
+<div class="container">
+<header>
+ <a class="wordmark" href="/#schedule">작가작업실 JEJU <small>관리자</small></a>
+ <nav class="header-nav" aria-label="관리자 메뉴"><a href="/admin/">소식 관리</a><a href="/admin/schedule.html" class="is-active" aria-current="page">스케줄 관리</a><button id="logout" type="button" class="btn secondary small" hidden>로그아웃</button></nav>
+</header>
+<p id="status" class="status" role="status" aria-live="polite"></p>
+<section id="loginView" class="card login">
+ <h1>관리자 로그인</h1><p class="note">기존 운영 소식 관리자 계정으로 로그인할 수 있습니다.</p>
+ <form id="loginForm">
+  <div class="field-row"><label for="email">이메일</label><input id="email" class="field" type="email" required autocomplete="username"></div>
+  <div class="field-row"><label for="password">비밀번호</label><input id="password" class="field" type="password" required autocomplete="current-password"></div>
+  <button class="btn" type="submit" id="loginBtn">로그인</button>
+ </form>
+</section>
+<section id="adminView" hidden>
+ <div class="page-head"><div><h1>스케줄 관리</h1><p class="note">모임·대관·추가 구분을 등록합니다. 자유방문은 자동 계산됩니다.</p></div><button id="newBtn" class="btn" type="button">+ 일정 등록</button></div>
+ <section id="scheduleFormPanel" class="card" hidden>
+  <div class="edit-head"><h2 id="formHeading">일정 등록</h2><button type="button" id="cancelTop" class="btn secondary small">닫기</button></div>
+  <form id="eventForm">
+   <input type="hidden" id="eventId">
+   <div class="grid">
+    <div class="field-row"><label for="eventDate">날짜</label><div class="date-with-weekday"><input class="field" id="eventDate" type="date" required><span id="eventWeekday" class="weekday-value" aria-live="polite"></span></div></div>
+    <div class="field-row"><label for="eventType">캘린더 구분</label>
+     <select class="field" id="eventType" required>
+      <option value="meeting">모임</option><option value="rental">대관</option><option value="closure">임시 휴무</option>
+      <option value="free" disabled>자유방문 (자동 계산)</option>
+      <option value="custom">+ 구분 직접 입력</option>
+     </select>
+    </div>
+   </div>
+   <div class="field-row" id="customRow" hidden><label for="customLabel">추가 구분 이름</label><input class="field" id="customLabel" maxlength="50" placeholder="예: 북토크, 촬영, 특별행사"><p class="form-help">월간 캘린더에서는 한 줄로만 표시되고 길면 …으로 생략됩니다.</p></div>
+   <div class="field-row"><label for="eventTitle">모임·일정 타이틀</label><input class="field" id="eventTitle" maxlength="150" required placeholder="예: 에세이 글쓰기 모임"></div>
+   <div class="field-row">
+    <label for="memoEditor">메모 (선택 · 관리자 전용)</label>
+    <div class="memo-tools" aria-label="메모 서식">
+     <button type="button" data-memo-command="bold" title="굵게"><b>B</b></button>
+     <button type="button" data-memo-command="italic" title="기울임"><i>I</i></button>
+     <button type="button" data-memo-command="underline" title="밑줄"><u>U</u></button>
+     <button type="button" data-memo-command="insertUnorderedList" title="글머리 기호">• 목록</button>
+     <button type="button" data-memo-command="insertOrderedList" title="번호 목록">1. 목록</button>
+     <button type="button" id="memoClear" title="서식 제거">서식 제거</button>
+    </div>
+    <div id="memoEditor" class="memo-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="대관 담당자, 준비물, 안내사항 등을 입력하세요."></div>
+    <p class="form-help">메모는 관리자 화면에만 표시되며 방문자용 캘린더에는 공개되지 않습니다. 기본 서식과 줄바꿈을 저장할 수 있습니다.</p>
+   </div>
+   <div class="grid" id="timeFields">
+    <div class="field-row"><label for="eventStart">시작시간 (24시간)</label><input id="eventStart" class="field" type="text" inputmode="numeric" autocomplete="off" maxlength="5" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" title="24시간 형식으로 입력해 주세요. 예: 10:00" placeholder="10:00" required value="10:00"></div>
+    <div class="field-row"><label for="eventEnd">종료시간 (24시간)</label><input id="eventEnd" class="field" type="text" inputmode="numeric" autocomplete="off" maxlength="5" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" title="24시간 형식으로 입력해 주세요. 예: 17:00" placeholder="12:00" required value="12:00"></div>
+   </div>
+   <p id="closureHelp" class="form-help" hidden>임시 휴무는 해당 날짜 전체에 적용됩니다. 기존 일정과 중복되면 등록할 수 없으며, 캘린더에는 회색 ‘임시휴무’로 표시됩니다.</p>
+   <p class="form-help">기본 운영시간은 10:00~17:00입니다. 야간행사나 일·월 특별일정도 등록할 수 있습니다. 같은 시간대의 일정은 등록할 수 없습니다. 경계 시간이 맞닿는 일정은 등록할 수 있습니다.</p>
+   <div class="edit-actions">
+    <button id="cancelBtn" type="button" class="btn secondary">취소</button>
+    <button id="saveBtn" type="submit" class="btn">일정 저장</button>
+   </div>
+  </form>
+ </section>
+ <div id="schedule" aria-label="관리자 월간 스케줄">
+  <div class="sc-frame">
+   <div class="sc-top">
+    <div><strong>작가작업실 JEJU · 월간 스케줄 관리</strong><small>날짜를 선택하면 상세 일정과 메모를 확인하고 수정·삭제할 수 있습니다.</small></div>
+    <div style="text-align:right"><strong style="font-size:16px">10:00 – 17:00</strong><small>일/월 정기휴무</small></div>
+   </div>
+   <div class="sc-legend" aria-label="스케줄 표시 구분">
+    <span class="sc-legend-item"><i class="sc-dot meeting"></i> 모임</span>
+    <span class="sc-legend-item"><i class="sc-dot rental"></i> 대관</span>
+    <span class="sc-legend-item"><i class="sc-dot free"></i> 자유방문</span>
+    <span class="sc-legend-item"><i class="sc-dot custom"></i> 특별일정</span>
+    <span class="sc-legend-item"><i class="sc-dot"></i> 휴무</span>
+   </div>
+   <div class="sc-main">
+    <section id="sc-month">
+     <div class="sc-toolbar">
+      <strong id="sc-month-title" class="sc-month-label"></strong>
+      <div class="sc-actions">
+       <button type="button" id="prevMonth" class="sc-control" aria-label="이전 달">‹</button>
+       <button type="button" id="currentMonth" class="sc-control sc-today">이번 달</button>
+       <button type="button" id="nextMonth" class="sc-control" aria-label="다음 달">›</button>
+      </div>
+     </div>
+     <div class="sc-month-scroll" aria-label="관리자 월간 캘린더">
+      <div class="sc-weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+      <div id="sc-days" class="sc-days" aria-live="polite"></div>
+     </div>
+     <p class="sc-info">날짜를 클릭하면 일정 상세, 메모, 수정·삭제 기능을 이용할 수 있습니다. 모바일에서는 캘린더를 좌우로 이동해 확인해 주세요.</p>
+    </section>
+    <section id="sc-detail-view" hidden>
+     <div class="sc-admin-tools">
+      <button type="button" id="sc-back" class="sc-back">← 월간 캘린더로</button>
+      <button type="button" id="sc-new-day" class="btn small">+ 이 날짜에 일정 등록</button>
+     </div>
+     <h3 id="sc-detail-date" class="sc-selected-date"></h3>
+     <div id="sc-detail-events" class="sc-event-list"></div>
+    </section>
+   </div>
+  </div>
+ </div>
+
+</section>
+</div>
+<script src="/assets/admin-session.js"></script>
+<script>
+(()=>{'use strict';
+ const $=id=>document.getElementById(id);
+ let token='',items=[],busy=false,requestSeq=0,selectedDate=null;
+ const sharedSession=window.JAKAdminSession;
+ const fmt=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'numeric',day:'numeric'});
+ const todayParts=fmt.formatToParts(new Date()),part=k=>Number(todayParts.find(p=>p.type===k)?.value||0);
+ let year=part('year'),month=part('month');
+ const pad=n=>String(n).padStart(2,'0');
+ const monthKey=()=>year+'-'+pad(month);
+ const todayKey=()=>part('year')+'-'+pad(part('month'))+'-'+pad(part('day'));
+ const label=x=>x.category==='meeting'?'모임':x.category==='rental'?'대관':x.category==='closure'?'임시 휴무':x.category_label||'기타';
+ const weekNames=['일','월','화','수','목','금','토'];
+ function syncWeekday(){
+  const value=$('eventDate').value;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(value)){$('eventWeekday').textContent='';return;}
+  const d=new Date(value+'T00:00:00Z');
+  $('eventWeekday').textContent=Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===value?'('+weekNames[d.getUTCDay()]+')':'';
+ }
+ const hhmm=x=>String(x||'').slice(0,5);
+ function notice(s,error=false){$('status').textContent=s||'';$('status').className='status'+(error?' error':'');}
+ function toggleForm(visible){$('scheduleFormPanel').hidden=!visible;if(visible)$('scheduleFormPanel').scrollIntoView({behavior:'smooth',block:'start'});}
+ async function api(url,opts={}){
+  const headers={'Content-Type':'application/json'};
+  if(token)headers.Authorization='Bearer '+token;
+  let response;
+  try{response=await fetch(url,{...opts,headers,cache:'no-store'});}
+  catch{throw Error('서버 연결에 실패했습니다. 네트워크를 확인해 주세요.');}
+  const body=await response.json().catch(()=>({}));
+  if(!response.ok){const err=Error(body.error||'요청에 실패했습니다. (HTTP '+response.status+')');err.status=response.status;throw err;}
+  return body;
+ }
+ function newEvent(preferredDate){
+  $('eventForm').reset();$('eventId').value='';$('memoEditor').innerHTML='';$('eventDate').value=typeof preferredDate==='string'?preferredDate:(todayKey().startsWith(monthKey())?todayKey():monthKey()+'-01');
+  $('eventType').value='meeting';$('eventStart').value='10:00';$('eventEnd').value='12:00';
+  $('formHeading').textContent='새 일정 등록';syncCustom();syncWeekday();toggleForm(true);notice('');
+ }
+ function syncCustom(){
+  const category=$('eventType').value,custom=category==='custom',closure=category==='closure';
+  $('customRow').hidden=!custom;$('customLabel').required=custom;
+  if(!custom)$('customLabel').value='';
+  $('timeFields').hidden=closure;$('closureHelp').hidden=!closure;
+  for(const id of ['eventStart','eventEnd']){$(id).disabled=closure;$(id).required=!closure;}
+ }
+ function editEvent(e){
+  $('eventId').value=e.id;$('eventDate').value=e.event_date;
+  $('eventType').value=e.category;$('customLabel').value=e.category_label||'';
+  $('eventTitle').value=e.title;$('memoEditor').innerHTML=e.memo||'';$('eventStart').value=hhmm(e.start_time);$('eventEnd').value=hhmm(e.end_time);
+  $('formHeading').textContent='일정 수정';syncCustom();syncWeekday();if(e.category==='custom')$('customLabel').value=e.category_label||'';
+  notice('');toggleForm(true);
+ }
+ function text(tag,cls,value){const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e;}
+ const weekdays=['일','월','화','수','목','금','토'];
+ const categories={meeting:'모임',rental:'대관',free:'자유방문',closure:'임시 휴무'};
+ const dayKey=(y,m,d)=>y+'-'+pad(m)+'-'+pad(d);
+ const dayOf=(y,m,d)=>new Date(Date.UTC(y,m-1,d)).getUTCDay();
+ const minutes=s=>Number(s.slice(0,2))*60+Number(s.slice(3,5));
+ const fmtClock=n=>pad(Math.floor(n/60))+':'+pad(n%60);
+ const kind=x=>x.category==='custom'?x.category_label||'특별일정':categories[x.category]||'특별일정';
+ const shade=x=>Object.prototype.hasOwnProperty.call(categories,x.category)?x.category:'custom';
+ const interval=x=>x.category==='closure'?'종일 휴무':hhmm(x.start_time)+'–'+hhmm(x.end_time);
+ function dayEvents(y,m,d){
+  const date=dayKey(y,m,d),busy=items.filter(x=>x.event_date===date).sort((a,b)=>a.start_time.localeCompare(b.start_time));
+  const closure=busy.find(x=>x.category==='closure');
+  if(closure)return{closed:true,temporaryClosed:true,events:[closure]};
+  if([0,1].includes(dayOf(y,m,d)))return{closed:busy.length===0,events:busy};
+  const free=[];let cursor=600;
+  // Auto free-visiting windows: 10:00–12:00 and 13:00–17:00.
+  const addFree=(start,end)=>{
+   for(const [windowStart,windowEnd] of [[600,720],[780,1020]]){
+    const a=Math.max(start,windowStart),b=Math.min(end,windowEnd);
+    if(a<b)free.push({category:'free',title:'자유롭게 책 읽고 글쓰기',start_time:fmtClock(a),end_time:fmtClock(b)});
+   }
+  };
+  for(const e of busy){
+   const start=Math.max(600,minutes(e.start_time)),end=Math.min(1020,minutes(e.end_time));
+   if(start>=end)continue;
+   if(cursor<start)addFree(cursor,start);
+   cursor=Math.max(cursor,end);
+  }
+  if(cursor<1020)addFree(cursor,1020);
+  // Only group free intervals when the entire business day is free, excluding lunch.
+  const wholeDay=free.length===2 &&
+   free[0].start_time==='10:00'&&free[0].end_time==='12:00'&&
+   free[1].start_time==='13:00'&&free[1].end_time==='17:00';
+  const displayFree=wholeDay?[{category:'free',title:'자유롭게 책 읽고 글쓰기',start_time:'10:00',end_time:'17:00',lunch_excluded:true}]:free;
+  return{closed:false,events:[...busy,...displayFree].sort((a,b)=>a.start_time.localeCompare(b.start_time))};
+ }
+ function render(){
+  $('sc-month-title').textContent=year+'년 '+month+'월';
+  const grid=$('sc-days');grid.replaceChildren();
+  const first=dayOf(year,month,1),last=new Date(Date.UTC(year,month,0)).getUTCDate();
+  for(let i=0;i<Math.ceil((first+last)/7)*7;i++){
+   const d=i-first+1;
+   if(d<1||d>last){const blank=text('div','sc-day is-other');blank.setAttribute('aria-hidden','true');grid.appendChild(blank);continue;}
+   const date=dayKey(year,month,d),wd=dayOf(year,month,d),info=dayEvents(year,month,d);
+   const button=text('button','sc-day');button.type='button';
+   if(wd===0)button.classList.add('is-sunday');
+   if(info.closed)button.classList.add('is-closed');
+   if(date===todayKey())button.classList.add('is-today');
+   button.setAttribute('aria-label',month+'월 '+d+'일 '+weekdays[wd]+'요일 일정 확인 및 관리');
+   button.appendChild(text('span','sc-date-num',String(d)));
+   if(info.closed)button.appendChild(text('span','sc-closed-label',info.temporaryClosed?'임시휴무':'휴무'));
+   else{
+    for(const event of info.events.slice(0,4)){
+     const chip=text('span','sc-entry '+shade(event));
+     const label=text('strong','sc-kind',kind(event));label.title=kind(event);
+     chip.append(label,text('span','sc-clock',interval(event)));
+     if(event.lunch_excluded)chip.appendChild(text('span','sc-lunch','(점심시간 12-13시)'));
+     button.appendChild(chip);
+    }
+    if(info.events.length>4)button.appendChild(text('span','sc-more','+'+(info.events.length-4)+'개 더보기'));
+   }
+   button.addEventListener('click',()=>showDay(date));grid.appendChild(button);
+  }
+ }
+ function detailCard(event){
+  const card=text('article','sc-detail '+shade(event));
+  card.append(text('div','sc-detail-kind',kind(event)),
+    text('div','sc-detail-title',event.title),
+    text('div','sc-detail-clock',interval(event)));
+  if(event.lunch_excluded)card.appendChild(text('div','sc-detail-lunch','(점심시간 12-13시)'));
+  if(event.category!=='free'){
+   if(event.memo){
+    const memo=text('div','sc-admin-memo');
+    memo.appendChild(text('div','sc-admin-memo-title','관리자 메모'));
+    const body=text('div','sc-admin-memo-body');
+    // Markup is sanitized by the authorized schedule admin API before display.
+    body.innerHTML=event.memo;memo.appendChild(body);card.appendChild(memo);
+   }
+   const actions=text('div','sc-admin-event-actions');
+   const edit=text('button','btn secondary small','수정');
+   const del=text('button','btn danger small','삭제');
+   edit.type='button';del.type='button';
+   edit.addEventListener('click',()=>editEvent(event));
+   del.addEventListener('click',()=>deleteEvent(event));
+   actions.append(edit,del);card.appendChild(actions);
+  }
+  return card;
+ }
+ function showDay(date){
+  selectedDate=date;
+  const [y,m,d]=date.split('-').map(Number),info=dayEvents(y,m,d);
+  $('sc-month').hidden=true;$('sc-detail-view').hidden=false;
+  $('sc-detail-date').textContent=y+'년 '+m+'월 '+d+'일 ('+weekdays[dayOf(y,m,d)]+')';
+  const area=$('sc-detail-events');area.replaceChildren();
+  if(info.closed&&!info.temporaryClosed){area.appendChild(text('div','sc-closed-detail','정기휴무 · 일요일과 월요일은 쉽니다.'));return;}
+  for(const e of info.events)area.appendChild(detailCard(e));
+ }
+ async function load(focusDate=null){
+  const id=++requestSeq;notice('일정을 조회하는 중입니다.');
+  try{
+   const data=await api('/api/schedule-admin?month='+monthKey());
+   if(id!==requestSeq)return;
+   items=Array.isArray(data.items)?data.items:[];
+   render();
+   if(focusDate&&focusDate.slice(0,7)===monthKey())showDay(focusDate);
+   else{selectedDate=null;$('sc-detail-view').hidden=true;$('sc-month').hidden=false;}
+   notice('');
+  }catch(err){if(id!==requestSeq)return;notice('조회 실패: '+err.message,true);}
+ }
+ async function deleteEvent(event){
+  if(!confirm(event.event_date+' '+interval(event)+' '+event.title+' 일정을 삭제하시겠습니까?'))return;
+  try{
+   await api('/api/schedule-admin?id='+encodeURIComponent(event.id),{method:'DELETE'});
+   await load(event.event_date);notice('일정을 삭제했습니다.');
+  }catch(err){notice('삭제 실패: '+err.message,true);}
+ }
+ $('eventType').addEventListener('change',()=>{
+  const leavingClosure=$('eventStart').disabled&&$('eventType').value!=='closure';
+  syncCustom();
+  if(leavingClosure){$('eventStart').value='10:00';$('eventEnd').value='12:00';}
+ });
+ $('eventDate').addEventListener('input',syncWeekday);
+ $('eventDate').addEventListener('change',syncWeekday);
+ $('newBtn').addEventListener('click',()=>newEvent());
+ $('sc-new-day').addEventListener('click',()=>newEvent(selectedDate));
+ $('sc-back').addEventListener('click',()=>{selectedDate=null;$('sc-detail-view').hidden=true;$('sc-month').hidden=false;});
+ for(const id of ['cancelBtn','cancelTop'])$(id).addEventListener('click',()=>toggleForm(false));
+ $('prevMonth').addEventListener('click',()=>changeMonth(-1));
+ $('nextMonth').addEventListener('click',()=>changeMonth(1));
+ $('currentMonth').addEventListener('click',()=>{year=part('year');month=part('month');toggleForm(false);load();});
+ function changeMonth(offset){
+  const date=new Date(Date.UTC(year,month-1+offset,1));year=date.getUTCFullYear();month=date.getUTCMonth()+1;
+  toggleForm(false);load();
+ }
+ document.querySelectorAll('[data-memo-command]').forEach(button=>{
+  button.addEventListener('mousedown',e=>e.preventDefault());
+  button.addEventListener('click',()=>{
+   $('memoEditor').focus();
+   document.execCommand(button.dataset.memoCommand,false,null);
+  });
+ });
+ $('memoClear').addEventListener('click',()=>{$('memoEditor').focus();document.execCommand('removeFormat',false,null);});
+ $('memoEditor').addEventListener('paste',event=>{
+  event.preventDefault();document.execCommand('insertText',false,event.clipboardData?.getData('text/plain')||'');
+ });
+ $('eventForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(busy)return;
+  const id=$('eventId').value,date=$('eventDate').value,category=$('eventType').value;
+  const start=$('eventStart').value,end=$('eventEnd').value;
+  const title=$('eventTitle').value.trim(),categoryLabel=category==='custom'?$('customLabel').value.trim():null;
+  if(!date||!title)return notice('날짜와 제목을 입력해 주세요.',true);
+  if(category==='custom'&&!categoryLabel)return notice('추가 구분 이름을 입력해 주세요.',true);
+  const closure=category==='closure',validTime=/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/;
+  if(!closure&&(!validTime.test(start)||!validTime.test(end)||end<=start))
+    return notice('시간을 24시간 형식(HH:MM)으로 입력하고 종료시간을 시작시간보다 늦게 설정해 주세요.',true);
+  const from=closure?'00:00':start,to=closure?'24:00':end;
+  const overlap=items.find(x=>x.id!==id&&x.event_date===date&&hhmm(x.start_time)<to&&from<hhmm(x.end_time));
+  if(overlap)return notice('등록 불가: '+overlap.title+' ('+(overlap.category==='closure'?'종일 휴무':hhmm(overlap.start_time)+'–'+hhmm(overlap.end_time))+') 일정과 겹칩니다.',true);
+  const memo=$('memoEditor').innerHTML.trim();
+  if(memo.length>30000)return notice('메모가 너무 깁니다. 내용을 줄여 주세요.',true);
+  const body={id,event_date:date,category,category_label:categoryLabel,title,memo,start_time:closure?null:start,end_time:closure?null:end};
+  busy=true;$('saveBtn').disabled=true;notice('일정을 저장하는 중입니다.');
+  try{
+   await api('/api/schedule-admin',{method:id?'PATCH':'POST',body:JSON.stringify(body)});
+   const [y,m]=date.slice(0,7).split('-').map(Number);year=y;month=m;
+   toggleForm(false);await load(date);notice(id?'일정을 수정했습니다.':'일정을 등록했습니다.');
+  }catch(err){notice('저장 실패: '+err.message,true);}
+  finally{busy=false;$('saveBtn').disabled=false;}
+ });
+ $('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();$('loginBtn').disabled=true;notice('로그인 확인 중…');
+  try{
+   const data=await api('/api/admin',{method:'POST',body:JSON.stringify({action:'login',email:$('email').value.trim(),password:$('password').value})});
+   token=data.token;sharedSession?.save(data.token,data.expires_in);$('password').value='';$('loginView').hidden=true;$('adminView').hidden=false;$('logout').hidden=false;await load();
+  }catch(err){notice('로그인 실패: '+err.message,true);}
+  finally{$('loginBtn').disabled=false;}
+ });
+ $('logout').addEventListener('click',()=>{token='';sharedSession?.clear();items=[];requestSeq++;selectedDate=null;$('memoEditor').innerHTML='';$('adminView').hidden=true;$('loginView').hidden=false;$('logout').hidden=true;$('eventForm').reset();notice('로그아웃했습니다.');});
+ async function restoreAdminSession(){
+  const cached=sharedSession?.read();
+  if(!cached)return;
+  token=cached;
+  $('loginView').hidden=true;$('adminView').hidden=false;$('logout').hidden=false;
+  try{
+   const payload=await api('/api/schedule-admin?month='+monthKey());
+   items=Array.isArray(payload.items)?payload.items:[];
+   render();notice('');
+  }catch(err){
+   if(err.status===401||err.status===403){
+    token='';sharedSession?.clear();
+    $('loginView').hidden=false;$('adminView').hidden=true;$('logout').hidden=true;
+    notice('로그인이 만료되었습니다. 다시 로그인해 주세요.',true);
+   }else{
+    notice('로그인은 유지됐지만 스케줄을 조회하지 못했습니다: '+err.message,true);
+   }
+  }
+ }
+ restoreAdminSession();
+})();
+</script>
+</body></html>
