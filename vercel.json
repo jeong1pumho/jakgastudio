@@ -2,6 +2,34 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/api/books",
+      "destination": "/api/news?_route=books"
+    },
+    {
+      "source": "/",
+      "destination": "/api/news?_route=home"
+    },
+    {
+      "source": "/books",
+      "destination": "/api/news?_route=home&_view=books"
+    },
+    {
+      "source": "/books/:id",
+      "destination": "/api/news?_route=home&page=books&book=:id"
+    },
+    {
+      "source": "/space",
+      "destination": "/api/news?_route=home&page=space"
+    },
+    {
+      "source": "/programs",
+      "destination": "/api/news?_route=home&page=programs"
+    },
+    {
+      "source": "/visit",
+      "destination": "/api/news?_route=home&page=visit"
+    },
+    {
       "source": "/robots.txt",
       "destination": "/api/robots"
     },
@@ -19,7 +47,7 @@
     },
     {
       "source": "/calendar",
-      "destination": "/api/calendar-page"
+      "destination": "/api/news?_route=home&page=calendar"
     },
     {
       "source": "/calendar/events/:id",
@@ -48,6 +76,18 @@
           "value": "noindex, nofollow"
         }
       ]
+    }
+  ],
+  "functions": {
+    "api/news.js": {
+      "includeFiles": "lib/*.html"
+    }
+  },
+  "redirects": [
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
     }
   ]
 }

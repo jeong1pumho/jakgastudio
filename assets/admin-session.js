@@ -1,9 +1,9 @@
-/* Session shared by the two administrators on the test origin only.
+/* Session shared by the two administrators on this origin only.
    Stored in sessionStorage (cleared when the browser tab session ends).
    Every private API request still verifies the Supabase token and admin role. */
 (function(){
  'use strict';
- const KEY='jakgastudio-temp.admin-auth.v1';
+ const KEY='jakgastudio.admin-auth.v1';
  const headroom=45*1000;
  function clear(){try{sessionStorage.removeItem(KEY);}catch{}}
  function read(){

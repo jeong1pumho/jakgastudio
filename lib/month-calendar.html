@@ -1,0 +1,38 @@
+<section aria-label="월간 일정" class="section schedule-section calendar-page-schedule" id="schedule">
+<div class="content-width">
+ <div class="sc-frame">
+  <div class="sc-summary">
+  <div class="sc-legend" aria-label="스케줄 표시 구분">
+   <span class="sc-legend-item"><i class="sc-dot meeting"></i> 모임</span>
+   <span class="sc-legend-item"><i class="sc-dot rental"></i> 대관</span>
+   <span class="sc-legend-item"><i class="sc-dot free"></i> 자유방문</span>
+   <span class="sc-legend-item"><i class="sc-dot custom"></i> 특별일정</span>
+   <span class="sc-legend-item"><i class="sc-dot"></i> 휴무</span>
+  </div>
+  <div class="sc-hours"><strong>09:00 - 17:00 | 일·월 ·공휴일 휴무</strong><p>점심시간(12-13시)에 방문 가능합니다. 방문 전 연락 주세요.</p></div>
+  </div>
+  <div class="sc-main">
+   <div id="sc-month">
+    <div class="sc-toolbar">
+     <strong id="sc-month-title" class="sc-month-label"></strong>
+     <div class="sc-actions">
+      <button type="button" id="sc-prev" class="sc-control" aria-label="이전 달">‹</button>
+      <button type="button" id="sc-current" class="sc-control sc-today">이번 달</button>
+      <button type="button" id="sc-next" class="sc-control" aria-label="다음 달">›</button>
+     </div>
+    </div>
+    <div class="sc-month-scroll" aria-label="월간 일정 캘린더">
+     <div class="sc-weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+     <div id="sc-days" class="sc-days" aria-live="polite"></div>
+    </div>
+   </div>
+   <div id="sc-detail-view" hidden>
+    <h3 id="sc-detail-date" class="sc-selected-date"></h3>
+    <div id="sc-detail-events" class="sc-event-list"></div>
+    <div class="sc-return"><a id="sc-back" class="sc-back" href="/calendar#schedule">← 돌아가기</a></div>
+   </div>
+   <p id="sc-state" class="sc-info" role="status" aria-live="polite">일정을 불러오는 중입니다.</p>
+  </div>
+ </div>
+</div>
+</section>

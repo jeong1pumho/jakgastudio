@@ -1,0 +1,289 @@
+'use strict';
+(() => {
+  const $ = id => document.getElementById(id);
+  const message = text => { $('message').textContent = text; };
+  const session = window.JAKAdminSession;
+  const token = session?.read();
+  const list = $('list');
+  const cropDialog = $('cropDialog');
+  const canvas = $('cropCanvas');
+  const context = canvas.getContext('2d');
+  const previewDialog = $('previewDialog');
+  const originalBucket = 'key-visual-originals';
+  const originalTypes = {'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/avif':'avif'};
+  const ranges = ['cropX','cropY','cropSize'].map($);
+  let slides = [], revision = 0, busy = false, editIndex = -1, crop, previewSlide, drag;
+
+  async function api(path, options = {}) {
+    const response = await fetch(path, {...options, headers:{
+      Authorization:'Bearer '+token, 'Content-Type':'application/json'
+    }});
+    const data = await response.json();
+    if (!response.ok) throw Error(data.error || '요청에 실패했습니다.');
+    return data;
+  }
+  function button(label, action, disabled = false) {
+    const el = document.createElement('button');
+    el.type = 'button'; el.textContent = label; el.disabled = disabled;
+    el.addEventListener('click', action);
+    return el;
+  }
+  function release(item) {
+    Object.values(item.pending || {}).forEach(file => URL.revokeObjectURL(file.preview));
+  }
+  function photo(item, mode) {
+    return item.pending?.[mode]?.preview || item[mode];
+  }
+  function render() {
+    $('add').disabled = busy || slides.length >= 10;
+    $('publish').disabled = busy || !slides.length;
+    $('count').textContent = slides.length+' / 10장';
+    list.replaceChildren(...slides.map((item, i) => {
+      const card = document.createElement('li');
+      card.className = 'card';
+      const img = document.createElement('img');
+      img.className = 'thumb'; img.src = photo(item,'desktop'); img.alt = '';
+      const actions = document.createElement('div'); actions.className = 'actions';
+      const move = direction => {
+        [slides[i],slides[i+direction]] = [slides[i+direction],slides[i]]; render();
+      };
+      actions.append(
+        button('위로',()=>move(-1),busy || i===0),
+        button('아래로',()=>move(1),busy || i===slides.length-1),
+        button('PC·모바일 미리보기',()=>{previewSlide=item; showPreview('fhd'); previewDialog.showModal();}),
+        ...(item.original ? [button('크롭 수정',()=>reopen(i),busy)] : []),
+        button(item.original?'원본 교체·크롭':'원본 선택·크롭',()=>choose(i),busy),
+        button('목록에서 제거',()=>{release(item);slides.splice(i,1);render();},busy)
+      );
+      card.append(img,actions); return card;
+    }));
+  }
+  function showPreview(mode) {
+    const mobile = mode==='mobile';
+    $('previewPhoto').src = photo(previewSlide,mobile?'mobile':'desktop');
+    $('previewPhoto').alt = previewSlide.alt || '';
+    $('previewFrame').classList.toggle('mobile',mobile);
+    $('previewInfo').textContent = {fhd:'Full HD · 1920 × 1080',qhd:'QHD · 2560 × 1440',mobile:'모바일 · 9:16'}[mode]+' 화면 비율 미리보기';
+    previewDialog.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+  }
+  previewDialog.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>showPreview(b.dataset.mode)));
+  function choose(i) {editIndex=i; $('file').value=''; $('file').click();}
+  $('add').addEventListener('click',()=>choose(-1));
+  $('file').addEventListener('change',async () => {
+    const [file] = $('file').files;
+    if (!file) return;
+    if (!['image/jpeg','image/png','image/webp','image/avif'].includes(file.type) || file.size > 30*1024*1024) {
+      message('JPG·PNG·WebP·AVIF 파일을 30MB 이하로 선택해 주세요.'); return;
+    }
+    await openCrop(file,{blob:file});
+  });
+  async function openCrop(file, original) {
+    const url = URL.createObjectURL(file);
+    try {
+      const image = new Image(); image.src=url; await image.decode();
+      crop = {image,url,original,settings:{},pending:{}};
+      setCropMode('desktop'); cropDialog.showModal();
+    } catch {
+      URL.revokeObjectURL(url); crop=null; message('사진 파일을 열 수 없습니다.');
+    }
+  }
+  async function storageConfig() {
+    const config=await api('/api/admin?action=config');
+    if(config.url!=='https://dolgltddpnxzwlqigtjw.supabase.co')throw Error('운영 저장소 연결을 확인해 주세요.');
+    return config;
+  }
+  async function reopen(i) {
+    if(busy)return;
+    editIndex=i;
+    const original=slides[i].original;
+    busy=true;render();
+    try {
+      let file=original.blob;
+      if(!file){
+        message('비공개 원본을 불러오는 중입니다…');
+        const config=await storageConfig();
+        const response=await fetch(config.url+'/storage/v1/object/authenticated/'+originalBucket+'/'+encodeURIComponent(original.name),
+          {headers:{apikey:config.key,Authorization:'Bearer '+token},cache:'no-store'});
+        if(!response.ok)throw Error('비공개 원본을 불러오지 못했습니다. (HTTP '+response.status+')');
+        file=await response.blob();
+      }
+      message('');
+      await openCrop(file,original);
+    }catch(error){message(error.message);}
+    finally{busy=false;render();}
+  }
+  function setCropMode(mode) {
+    crop.mode = mode;
+    const settings=crop.original[mode] || [50,50,100];
+    ranges.forEach((range,i)=>{range.value=settings[i];});
+    $('cropTitle').textContent=mode==='desktop'?'PC 영역 선택 (16:9)':'모바일 영역 선택 (9:16)';
+    $('acceptCrop').textContent=mode==='desktop'?'모바일 영역 선택하기':'두 크롭 적용';
+    const {naturalWidth:w,naturalHeight:h}=crop.image;
+    const scale=Math.min(1,650/w,480/h);
+    canvas.width=Math.max(1,Math.round(w*scale)); canvas.height=Math.max(1,Math.round(h*scale));
+    draw();
+  }
+  const cropRatio = () => crop.mode==='desktop'?[16,9]:[9,16];
+  function bounds() {
+    const {naturalWidth:w,naturalHeight:h}=crop.image;
+    const [rw,rh]=cropRatio();
+    const units=Math.max(1,Math.floor(Math.min(w/rw,h/rh)*Number(ranges[2].value)/100));
+    const width=units*rw,height=units*rh;
+    return {x:Math.round((w-width)*Number(ranges[0].value)/100),
+      y:Math.round((h-height)*Number(ranges[1].value)/100),width,height};
+  }
+  function draw() {
+    const {image,mode}=crop;
+    const {x,y,width,height}=bounds();
+    const w=canvas.width,h=canvas.height,sx=w/image.naturalWidth,sy=h/image.naturalHeight;
+    const left=x*sx,top=y*sy,right=(x+width)*sx,bottom=(y+height)*sy;
+    context.drawImage(image,0,0,w,h);
+    context.fillStyle='#0009';
+    context.fillRect(0,0,w,top); context.fillRect(0,bottom,w,h-bottom);
+    context.fillRect(0,top,left,bottom-top); context.fillRect(right,top,w-right,bottom-top);
+    context.strokeStyle='#ffef32'; context.lineWidth=2;
+    context.strokeRect(left,top,right-left,bottom-top);
+    context.fillStyle='#ffef32';
+    for(const x of [left,right]) for(const y of [top,bottom]) {
+      context.fillRect(Math.max(0,Math.min(w-10,x-5)),Math.max(0,Math.min(h-10,y-5)),10,10);
+    }
+    $('dimensions').textContent=width+' × '+height+' px'+(mode==='desktop'&&width<2560?' · QHD 권장 너비 2560px 미만':'');
+  }
+  ranges.forEach(r=>r.addEventListener('input',draw));
+  function pointerTarget(event, box, rect) {
+    const sx=rect.width/crop.image.naturalWidth,sy=rect.height/crop.image.naturalHeight;
+    const x=event.clientX-rect.left,y=event.clientY-rect.top;
+    const left=box.x*sx,right=(box.x+box.width)*sx;
+    const top=box.y*sy,bottom=(box.y+box.height)*sy;
+    const radius=event.pointerType==='touch'?20:13;
+    const cornerX=Math.abs(x-left)<=Math.abs(x-right)?-1:1;
+    const cornerY=Math.abs(y-top)<=Math.abs(y-bottom)?-1:1;
+    if(Math.abs(x-(cornerX<0?left:right))<=radius && Math.abs(y-(cornerY<0?top:bottom))<=radius) {
+      return {cornerX,cornerY,cursor:cornerX===cornerY?'nwse-resize':'nesw-resize'};
+    }
+    if(x>=left&&x<=right&&y>=top&&y<=bottom) return {cursor:'move'};
+    return null;
+  }
+  function setPosition(x,y,width,height) {
+    const w=crop.image.naturalWidth-width,h=crop.image.naturalHeight-height;
+    ranges[0].value=w>0?100*x/w:50;
+    ranges[1].value=h>0?100*y/h:50;
+  }
+  canvas.addEventListener('pointerdown',event=>{
+    if(drag || event.button!==0)return;
+    const box=bounds(),rect=canvas.getBoundingClientRect();
+    const target=pointerTarget(event,box,rect);
+    if(!target)return;
+    canvas.setPointerCapture(event.pointerId);
+    drag={...box,...target,clientX:event.clientX,clientY:event.clientY,pointerId:event.pointerId};
+  });
+  canvas.addEventListener('pointermove',event=>{
+    const rect=canvas.getBoundingClientRect();
+    if(!drag){
+      canvas.style.cursor=pointerTarget(event,bounds(),rect)?.cursor||'default';
+      return;
+    }
+    if(drag.pointerId!==event.pointerId || !canvas.hasPointerCapture(event.pointerId))return;
+    const w=crop.image.naturalWidth,h=crop.image.naturalHeight;
+    const dx=(event.clientX-drag.clientX)*w/rect.width,dy=(event.clientY-drag.clientY)*h/rect.height;
+    if(drag.cornerX){
+      const [rw,rh]=cropRatio();
+      const anchorX=drag.cornerX>0?drag.x:drag.x+drag.width;
+      const anchorY=drag.cornerY>0?drag.y:drag.y+drag.height;
+      const maxUnits=Math.min(w/rw,h/rh);
+      const minUnits=Math.max(1,Math.floor(maxUnits*Number(ranges[2].min)/100));
+      const limit=Math.floor(Math.min((drag.cornerX>0?w-anchorX:anchorX)/rw,(drag.cornerY>0?h-anchorY:anchorY)/rh));
+      const projected=(drag.cornerX*dx*rw+drag.cornerY*dy*rh)/(rw*rw+rh*rh);
+      const units=Math.max(minUnits,Math.min(limit,Math.round(drag.width/rw+projected)));
+      const width=units*rw,height=units*rh;
+      // Select a point inside this integer crop-size step to avoid rounding down.
+      ranges[2].value=100*(units+0.25)/maxUnits;
+      setPosition(drag.cornerX>0?anchorX:anchorX-width,drag.cornerY>0?anchorY:anchorY-height,width,height);
+    }else{
+      setPosition(drag.x+dx,drag.y+dy,drag.width,drag.height);
+    }
+    draw();
+  });
+  canvas.addEventListener('lostpointercapture',()=>{drag=null;canvas.style.cursor='default';});
+  $('cancelCrop').addEventListener('click',()=>cropDialog.close());
+  cropDialog.addEventListener('cancel',event=>{if($('acceptCrop').disabled)event.preventDefault();});
+  cropDialog.addEventListener('close',()=>{
+    if(!crop)return;
+    release(crop); URL.revokeObjectURL(crop.url); crop=null;
+  });
+  $('acceptCrop').addEventListener('click',async () => {
+    const accept=$('acceptCrop'),cancel=$('cancelCrop');
+    accept.disabled=true;cancel.disabled=true;
+    try {
+      const {x,y,width,height}=bounds();
+      if (width<9 || height<9 || x<0 || y<0) throw Error('크롭할 수 있는 크기의 원본을 선택해 주세요.');
+      const scale=Math.min(1,(crop.mode==='desktop'?2560:1080)/width);
+      const output=document.createElement('canvas'); output.width=Math.round(width*scale); output.height=Math.round(height*scale);
+      const outputContext=output.getContext('2d');
+      outputContext.imageSmoothingEnabled=true;outputContext.imageSmoothingQuality='high';
+      outputContext.drawImage(crop.image,x,y,width,height,0,0,output.width,output.height);
+      const blob=await new Promise(resolve=>output.toBlob(resolve,'image/webp',.88));
+      if (!blob) throw Error('크롭 이미지를 만들지 못했습니다.');
+      if (blob.size > 50*1024*1024) throw Error('크롭 이미지가 50MB를 초과합니다. 선택 영역을 줄이거나 용량이 작은 원본을 사용해 주세요.');
+      crop.pending[crop.mode]={blob,preview:URL.createObjectURL(blob)};
+      crop.settings[crop.mode]=ranges.map(range=>Number(range.value));
+      if(crop.mode==='desktop'){setCropMode('mobile');return;}
+      const item={pending:crop.pending,original:{...crop.original,...crop.settings}};
+      if(editIndex===-1)slides.push(item);
+      else{release(slides[editIndex]);slides[editIndex]=item;}
+      crop.pending={};cropDialog.close();render();message('크롭을 적용했습니다. 발행하면 홈페이지에 표시됩니다.');
+    }catch(error){$('dimensions').textContent=error.message;}
+    finally{accept.disabled=false;cancel.disabled=false;}
+  });
+  async function upload(file, config) {
+    if(file.url)return file.url;
+    const type=file.blob.type;
+    if(!['image/webp','image/png'].includes(type))throw Error('지원하지 않는 출력 형식입니다.');
+    const name=crypto.randomUUID()+(type==='image/webp'?'.webp':'.png');
+    const base=config.url+'/storage/v1/object/';
+    const response=await fetch(base+'key-visual/'+name,{method:'POST',
+      headers:{apikey:config.key,Authorization:'Bearer '+token,'Content-Type':type,'x-upsert':'false'},body:file.blob});
+    if(!response.ok)throw Error('사진 업로드에 실패했습니다. (HTTP '+response.status+')');
+    file.url=base+'public/key-visual/'+name;
+    return file.url;
+  }
+  async function saveOriginal(original, config) {
+    if(!original)return undefined;
+    if(!original.name){
+      const {blob}=original;
+      const name=crypto.randomUUID()+'.'+originalTypes[blob.type];
+      const response=await fetch(config.url+'/storage/v1/object/'+originalBucket+'/'+name,{method:'POST',
+        headers:{apikey:config.key,Authorization:'Bearer '+token,'Content-Type':blob.type,'x-upsert':'false'},body:blob});
+      if(!response.ok)throw Error('비공개 원본 저장에 실패했습니다. (HTTP '+response.status+')');
+      original.name=name;
+    }
+    const {name,desktop,mobile}=original;
+    return {name,desktop,mobile};
+  }
+  $('publish').addEventListener('click',async () => {
+    if(busy)return;
+    busy=true;render();message('사진을 업로드하고 있습니다…');
+    try {
+      const config=await storageConfig();
+      const published=[];
+      for(const item of slides){
+        const desktop=item.pending?await upload(item.pending.desktop,config):item.desktop;
+        const mobile=item.pending?await upload(item.pending.mobile,config):item.mobile;
+        const original=await saveOriginal(item.original,config);
+        published.push({desktop,mobile,alt:item.alt,original});
+      }
+      const saved=await api('/api/key-visual',{method:'PUT',body:JSON.stringify({slides:published,revision})});
+      slides.forEach(release);slides=published;revision=saved.revision;message('테스트 홈페이지에 반영했습니다.');
+    }catch(error){message('반영 실패 · '+error.message);}
+    finally{busy=false;render();}
+  });
+  async function init() {
+    if(!token){message('관리자 홈에서 로그인한 뒤 다시 열어 주세요.');return;}
+    try {
+      const data=await api('/api/key-visual?admin=1');
+      slides=data.slides;revision=data.revision;
+      $('editor').hidden=false;render();
+    }catch(error){message(error.message);}
+  }
+  init();
+})();
