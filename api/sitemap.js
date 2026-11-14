@@ -1,6 +1,8 @@
 'use strict';
 const {query,ready}=require('../lib/core');
 const {origin,xmlEscape,isoDate}=require('../lib/seo');
+const {programs}=require('../lib/programs-page');
+const {publicCalendarEnd}=require('../lib/public-calendar-range');
 const SLUG=/^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 module.exports=async(req,res)=>{
   if(req.method!=='GET')return res.status(405).end();
@@ -14,6 +16,7 @@ module.exports=async(req,res)=>{
       if(rows.length<500)break;
     }
     const urls=[{path:'/'},{path:'/news'},{path:'/calendar'},{path:'/books'},{path:'/space'},{path:'/programs'},{path:'/visit'}];
+    urls.push(...programs.map(program=>({path:'/programs/'+program.slug})));
     const books=await query('/rest/v1/recommended_books?select=id,updated_at&published=eq.true&limit=1000');
     for(const book of books)urls.push({path:'/books/'+book.id,lastmod:isoDate(book.updated_at)});
     const seen=new Set();
@@ -24,11 +27,12 @@ module.exports=async(req,res)=>{
     }
     // Only genuinely listed, public-facing meetings and special events get
     // individual SEO URLs; private rentals, closures and auto free slots do not.
-    const todayParts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'numeric',day:'numeric'}).formatToParts(new Date());
+    const now=new Date();
+    const todayParts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'numeric',day:'numeric'}).formatToParts(now);
     const todayValue=k=>Number(todayParts.find(p=>p.type===k)?.value||0);
     const y=todayValue('year'),m=todayValue('month'),d=todayValue('day');
     const today=y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const future=new Date(Date.UTC(y,m+3,1)).toISOString().slice(0,10);
+    const future=publicCalendarEnd(now);
     const events=await query('/rest/v1/schedule_events?select=id,event_date,category,updated_at'+
       '&event_date=gte.'+today+'&event_date=lt.'+future+
       '&category=in.(meeting,custom)&order=event_date.asc,start_time.asc&limit=300');

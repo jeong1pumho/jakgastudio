@@ -99,7 +99,7 @@ td.actions{white-space:nowrap}
 </style>
 <link rel="stylesheet" href="/assets/schedule.css">
 <link rel="stylesheet" href="/assets/admin-topbar.css?v=20261112"><script defer src="/assets/admin-topbar.js?v=20261112"></script></head>
-<body><header id="admin-topbar"><a class="admin-top-brand" href="/">작가작업실 JEJU <small>관리자</small></a><nav aria-label="관리자 메뉴"><a class="admin-top-link" href="/admin/key-visual.html">Key Visual</a><a class="admin-top-link" href="/admin/books.html">작가 추천 도서</a><a class="admin-top-link" href="/admin/">모임행사</a><a class="admin-top-link" href="/admin/schedule.html" aria-current="page">월간 캘린더</a><a class="admin-top-link" href="/admin/space.html">공간 소개</a><a class="admin-top-link" href="/admin/sms.html">문자 알림</a><button type="button" class="admin-top-link" id="logout" hidden>로그아웃</button></nav></header>
+<body><header id="admin-topbar"><a class="admin-top-brand" href="/admin/">작가작업실 JEJU <small>관리자</small></a><nav aria-label="관리자 메뉴"><a class="admin-top-link" href="/admin/">Home</a><a class="admin-top-link" href="/admin/key-visual.html">Key Visual</a><a class="admin-top-link" href="/admin/books.html">작가 추천 도서</a><a class="admin-top-link" href="/admin/news.html">모임·행사</a><a class="admin-top-link" href="/admin/schedule.html" aria-current="page">월간 캘린더</a><a class="admin-top-link" href="/admin/space.html">공간 소개</a><a class="admin-top-link" href="/admin/sms.html">문자 알림</a><button type="button" class="admin-top-link" id="logout" hidden>로그아웃</button></nav></header>
 <div class="container">
 
 <p id="status" class="status" role="status" aria-live="polite"></p>
@@ -197,11 +197,11 @@ td.actions{white-space:nowrap}
 
 </section>
 </div>
-<script src="/assets/admin-session.js"></script>
+<script src="/assets/admin-session.js?v=refresh"></script>
 <script>
 (()=>{'use strict';
  const $=id=>document.getElementById(id);
- let token='',items=[],busy=false,requestSeq=0,selectedDate=null;
+ let token='',items=[],holidays={},busy=false,requestSeq=0,selectedDate=null;
  const sharedSession=window.JAKAdminSession;
  const fmt=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'numeric',day:'numeric'});
  const todayParts=fmt.formatToParts(new Date()),part=k=>Number(todayParts.find(p=>p.type===k)?.value||0);
@@ -223,7 +223,7 @@ td.actions{white-space:nowrap}
  function toggleForm(visible){$('scheduleFormPanel').hidden=!visible;if(visible)$('scheduleFormPanel').scrollIntoView({behavior:'smooth',block:'start'});}
  async function api(url,opts={}){
   const headers={'Content-Type':'application/json'};
-  if(token)headers.Authorization='Bearer '+token;
+  if(token&&(opts?.body?JSON.parse(opts.body).action!=='login':true))headers.Authorization='Bearer '+await sharedSession.token();
   let response;
   try{response=await fetch(url,{...opts,headers,cache:'no-store'});}
   catch{throw Error('서버 연결에 실패했습니다. 네트워크를 확인해 주세요.');}
@@ -270,6 +270,7 @@ td.actions{white-space:nowrap}
   if(opening)return{opening:true,closed:false,events:[opening]};
   const closure=busy.find(x=>x.category==='closure');
   if(closure)return{closed:true,temporaryClosed:true,events:[closure]};
+  if(holidays[date])return{closed:busy.length===0,holiday:holidays[date],events:busy};
   if([0,1].includes(dayOf(y,m,d)))return{closed:busy.length===0,events:busy};
   const free=[];let cursor=540;
   // Auto free-visiting windows: 09:00–12:00 and 13:00–17:00.
@@ -304,14 +305,16 @@ td.actions{white-space:nowrap}
    const date=dayKey(year,month,d),wd=dayOf(year,month,d),info=dayEvents(year,month,d);
    const button=text('button','sc-day');button.type='button';
    if(wd===0)button.classList.add('is-sunday');
+   if(holidays[date]&&!info.preOpen)button.classList.add('is-holiday');
    if(info.closed)button.classList.add('is-closed');
    if(info.preOpen)button.classList.add('is-pre-open');
    if(info.opening)button.classList.add('is-opening');
    if(date===todayKey())button.classList.add('is-today');
    button.setAttribute('aria-label',info.opening?'10월 22일 작가작업실 JEJU OPEN':info.preOpen?month+'월 '+d+'일 오픈 전':month+'월 '+d+'일 '+weekdays[wd]+'요일 일정 확인 및 관리');
    button.appendChild(text('span','sc-date-num',String(d)));
-   if(info.closed)button.appendChild(text('span','sc-closed-label',info.temporaryClosed?'임시휴무':'휴무'));
+   if(info.closed)button.appendChild(text('span','sc-closed-label',info.temporaryClosed?'임시휴무':info.holiday?info.holiday+' · 휴무':'휴무'));
    else{
+    if(info.holiday)button.appendChild(text('span','sc-closed-label',info.holiday));
     for(const event of info.events.slice(0,4)){
      const chip=text('span','sc-entry '+shade(event));
      const label=text('strong','sc-kind',kind(event));label.title=kind(event);
@@ -358,6 +361,8 @@ td.actions{white-space:nowrap}
   $('sc-month').hidden=true;$('sc-detail-view').hidden=false;
   $('sc-detail-date').textContent=y+'년 '+m+'월 '+d+'일 ('+weekdays[dayOf(y,m,d)]+')';
   const area=$('sc-detail-events');area.replaceChildren();
+  if(info.holiday)area.appendChild(text('div','sc-closed-detail',info.holiday+(info.closed?' · 휴무입니다.':'')));
+  if(info.closed&&info.holiday)return;
   if(info.closed&&!info.temporaryClosed){area.appendChild(text('div','sc-closed-detail','정기휴무 · 일요일과 월요일은 쉽니다.'));return;}
   for(const e of info.events)area.appendChild(detailCard(e));
  }
@@ -367,6 +372,7 @@ td.actions{white-space:nowrap}
    const data=await api('/api/schedule-admin?month='+monthKey());
    if(id!==requestSeq)return;
    items=Array.isArray(data.items)?data.items:[];
+   holidays=data.holidays||{};
    render();
    if(focusDate&&focusDate.slice(0,7)===monthKey())showDay(focusDate);
    else{selectedDate=null;$('sc-detail-view').hidden=true;$('sc-month').hidden=false;}
@@ -440,11 +446,11 @@ td.actions{white-space:nowrap}
   e.preventDefault();$('loginBtn').disabled=true;notice('로그인 확인 중…');
   try{
    const data=await api('/api/admin',{method:'POST',body:JSON.stringify({action:'login',email:$('email').value.trim(),password:$('password').value})});
-   token=data.token;sharedSession?.save(data.token,data.expires_in);$('password').value='';$('loginView').hidden=true;$('adminView').hidden=false;$('logout').hidden=false;await load();
+   token=data.token;sharedSession?.save(data.token,data.expires_in,data.refresh_token);$('password').value='';$('loginView').hidden=true;$('adminView').hidden=false;$('logout').hidden=false;await load();
   }catch(err){notice('로그인 실패: '+err.message,true);}
   finally{$('loginBtn').disabled=false;}
  });
- $('logout').addEventListener('click',()=>{token='';sharedSession?.clear();items=[];requestSeq++;selectedDate=null;$('memoEditor').innerHTML='';$('adminView').hidden=true;$('loginView').hidden=false;$('logout').hidden=true;$('eventForm').reset();notice('로그아웃했습니다.');});
+ $('logout').addEventListener('click',()=>{token='';sharedSession?.clear();items=[];holidays={};requestSeq++;selectedDate=null;$('memoEditor').innerHTML='';$('adminView').hidden=true;$('loginView').hidden=false;$('logout').hidden=true;$('eventForm').reset();notice('로그아웃했습니다.');});
  async function restoreAdminSession(){
   const cached=sharedSession?.read();
   if(!cached)return;
@@ -453,6 +459,7 @@ td.actions{white-space:nowrap}
   try{
    const payload=await api('/api/schedule-admin?month='+monthKey());
    items=Array.isArray(payload.items)?payload.items:[];
+   holidays=payload.holidays||{};
    render();notice('');
   }catch(err){
    if(err.status===401||err.status===403){

@@ -6,9 +6,9 @@ let token="",subscribers=[],events=[],campaigns=[],selected=new Set(),configured
 function notice(s,error=false){$("feedback").textContent=s||"";$("feedback").hidden=!s;$("feedback").classList.toggle("error",error);}
 function dashboard(yes){$("login-panel").hidden=yes;$("dashboard").hidden=!yes;}
 async function call(action,fields={}){
- const resp=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({action,...fields})});
+ const resp=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+await session.token()},body:JSON.stringify({action,...fields})});
  let data={};try{data=await resp.json()}catch{}
- if(!resp.ok)throw Error(data.error||"요청 처리 실패");
+ if(!resp.ok)throw Object.assign(Error(data.error||"요청 처리 실패"),{status:resp.status});
  return data;
 }
 function currentEvent(){return events.find(e=>e.id===$("event").value);}
@@ -49,7 +49,7 @@ function renderSignupEmailStatus(state){
  const count=state?.counts||{queued:0,processing:0,sent:0,failed:0};
  $("signup-email-config").textContent=canSend?
   "이메일 발송 설정 완료 · 새로운 온라인 신청이 접수되면 Gmail로 알림을 보냅니다.":
-  "이메일 발송 설정 대기 · 운영 Supabase Secrets에 RESEND_API_KEY와 RESEND_FROM_EMAIL 등록 필요";
+  "이메일 발송 설정 대기 · 테스트 Supabase Secrets에 RESEND_API_KEY와 RESEND_FROM_EMAIL 등록 필요";
  $("signup-email-counts").textContent="발송 대기 "+((count.queued||0)+(count.processing||0))+"건 · 발송 완료 "+(count.sent||0)+"건 · 실패 "+(count.failed||0)+"건";
  const last=state?.last?.find(x=>x.status==="failed");
  $("signup-email-last").hidden=!last;
@@ -59,7 +59,7 @@ function renderSignupEmailStatus(state){
 async function load(){
  const r=await call("status");subscribers=r.subscribers||[];events=r.events||[];campaigns=r.campaigns||[];configured=r.configured===true;
  renderSignupEmailStatus(r.emailNotifications);
- verifiedConnection=false;$("unconfigured").hidden=false;$("connection").textContent=configured?"설정값 확인됨 · API 검증 필요":"운영 사이트 · 솔라피 인증정보 설정 대기";
+ verifiedConnection=false;$("unconfigured").hidden=false;$("connection").textContent=configured?"설정값 확인됨 · API 검증 필요":"테스트 사이트 · 솔라피 인증정보 설정 대기";
  $("count-all").textContent=subscribers.length;
  $("count-active").textContent=subscribers.filter(x=>x.status==="active").length;
  $("count-off").textContent=subscribers.filter(x=>x.status==="unsubscribed").length;
@@ -268,10 +268,10 @@ $("login-form").addEventListener("submit",async e=>{
  e.preventDefault();const btn=e.target.querySelector("button");btn.disabled=true;notice("");
  try{const res=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"login",email:$("email").value.trim(),password:$("password").value})});
  const data=await res.json();if(!res.ok||!data.token)throw Error(data.error||"로그인에 실패했습니다.");
- token=data.token;session?.save(token,data.expires_in);$("password").value="";await load();}
+ token=data.token;session?.save(token,data.expires_in,data.refresh_token);$("password").value="";await load();}
  catch(e){notice(e.message,true)}finally{btn.disabled=false;}
 });
 $("logout").addEventListener("click",()=>{token="";session?.clear();subscribers=[];selected.clear();dashboard(false);notice("")});
-const saved=session?.read();if(saved){token=saved;load().catch(e=>{token="";session?.clear();dashboard(false);notice("관리자 로그인이 필요합니다.",true)})}
+const saved=session?.read();if(saved){token=saved;load().catch(e=>{if(e.status===401||e.status===403){token="";session?.clear();dashboard(false);}notice(e.message,true)})}
 preview();
 })();

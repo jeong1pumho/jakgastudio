@@ -47,3 +47,31 @@ body{padding-top:84px}#kv-hero.carousel-keyvisual{height:calc(100svh - 84px)}.pa
 .book-detail-return a{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:16px 30px;border:1px solid #26382c;color:#26382c;background:#faf8f3;text-decoration:none;font-family:HomeKakao,sans-serif;font-size:15px;line-height:1.5}
 .book-detail-return a:hover{background:#26382c;color:#faf8f3}
 @media(max-width:760px){.book-detail-return{margin-top:40px}.book-detail-return a{padding:14px 24px}}
+
+/* Place the introduction link below the brand signature. */
+#brand-story .kv-space-link {
+  display:inline-flex; align-items:center; gap:14px; min-height:44px;
+  margin-top:20px; padding:7px 16px; border:1px solid rgba(255,255,255,.75);
+  background:rgba(24,18,13,.42); color:#fff; text-decoration:none; font-size:14px;
+}
+#brand-story .kv-space-link:hover,
+#brand-story .kv-space-link:focus-visible {background:#34261d}
+@media(max-width:740px) {
+  #brand-story .kv-space-link {margin-top:14px}
+}
+
+.book-detail .book-detail-title{font-family:HomeKakao,sans-serif;font-size:clamp(24px,3.1vw,32px);line-height:1.4;margin:32px 0 8px}
+.book-detail .book-detail-label{font-family:HomeKakao,sans-serif;font-size:15px;line-height:1.6;margin:0}
+.book-detail .book-detail-review-label{font-family:HomeKakao,sans-serif;font-size:17px;line-height:1.6;margin:24px 0 4px;text-decoration:underline}
+.book-detail .book-detail-label + .book-detail-review-label{margin-top:clamp(44px,5vw,60px)}
+.book-detail .book-detail-copy{font-family:HomeKakao,sans-serif;font-size:18px;margin-top:0;overflow-wrap:anywhere}
+
+/* Recommended books listing */
+#recommended-books:has(>.books-page-heading)>.home-three{grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 16px}
+#recommended-books:has(>.books-page-heading) .home-book h3{font-size:18px;margin:14px 0 7px;overflow-wrap:anywhere}
+#recommended-books:has(>.books-page-heading) .home-recommendation{font-size:15px}
+#recommended-books:has(>.books-page-heading) .home-empty{grid-column:1/-1}
+@media(min-width:960px){
+  #recommended-books>.home-three{grid-template-columns:repeat(4,minmax(0,1fr));gap:40px 24px}
+  #recommended-books:has(>.books-page-heading) .home-book h3{font-size:20px;margin:17px 0 8px}
+}
