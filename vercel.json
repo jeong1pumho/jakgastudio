@@ -2,6 +2,14 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/api/cron-clarity",
+      "destination": "/api/admin?action=clarity-collect"
+    },
+    {
+      "source": "/api/visit-analytics",
+      "destination": "/api/admin?action=visit-analytics"
+    },
+    {
       "source": "/api/books",
       "destination": "/api/news?_route=books"
     },
@@ -115,7 +123,7 @@
   ],
   "crons": [
     {
-      "path": "/api/clarity-collect",
+      "path": "/api/cron-clarity",
       "schedule": "15 1 * * *"
     }
   ]
