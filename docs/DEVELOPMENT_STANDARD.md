@@ -1,6 +1,6 @@
 # 작가작업실 JEJU 홈페이지 개발기준서
 
-2026-11-21 KST · v1.7 · 새 채팅에서 사용하는 유지보수 기준 및 확인 기록
+2026-11-21 KST · v1.8 · 새 채팅에서 사용하는 유지보수 기준 및 확인 기록
 
 ## 1. 새 채팅에서 바로 적용할 작업 범위
 
@@ -336,3 +336,28 @@
 - 관리자 '/admin/analytics.html'의 섹션 순서는 **Microsoft Clarity → 홈페이지 자체 행동 분석 → Google Analytics 4**. GA4 추적 스크립트 및 관리 보고서 기능은 유지하며 데이터는 합산하지 않는다.
 - 이전 v1.6 기록 당시 미등록이던 CLARITY_PROJECT_ID 및 CLARITY_API_TOKEN은 이후 운영 Vercel Production에 등록·재배포되었다. 토큰 값은 문서나 GitHub에 포함하지 않는다.
 - 테스트 저장소 및 테스트 Vercel 프로젝트는 변경하지 않는다.
+
+
+## 2026-11-21 저장공간 안전 정리 및 미완료 항목 (v1.8)
+
+### 수행 범위 및 결과
+- 작업 대상은 운영 `jeong1pumho/jakgastudio`와 테스트 `jeong1pumho/jakgastudio-temp` 저장소/배포, 각각의 Supabase DB·Storage이다.
+- 현재 홈페이지는 `lib/home-template.html`로 렌더링한다. 전체 런타임 소스 참조 점검에서 사용되지 않는 구버전 백업 `lib/legacy-home.html`(113,329 B/저장소)을 **운영·테스트 GitHub main에서 각각 제거**했다. 과거 버전은 Git 이력에 남아 복구 가능하다.
+- 현재 Git 트리 기준 제거 분량: 운영 113,329 B + 테스트 113,329 B = **226,658 B**. 이는 소스/배포 포함 대상에서 제외된 크기이며, Vercel 청구 저장공간 또는 물리 스토리지 사용량이 동일하게 줄었다는 의미가 아니다.
+- 테스트 정리 커밋 `14db5c2334a1e7f4787749cfa96b13d5c44849ec`, READY 배포 `dpl_9BZUVMqWcDSE57UXcxdkKeLSzQXT`; 운영 정리 커밋 `861c9f332fa90905dc92285714210f1b2aa4b285`, READY 배포 `dpl_DCN6CYZbEF5dahxYitQWRuAaBSg4`.
+- 두 사이트에서 `/`, `/news`, `/space`, `/admin/`, `/admin/analytics.html` 응답 200, 해당 배포의 최근 서버 error/fatal 로그 미관측.
+
+### 저장소 정밀 조사: 삭제하지 않은 항목
+- Supabase Storage 메타데이터상 사용량: **운영 489,811,379 B**, **테스트 398,529,510 B**(2026-11-21 확인). 주요 데이터는 Key Visual, NEWS, 추천도서의 공개 이미지 및 원본이다.
+- 현재 CMS(NEWS·추천도서·Key Visual·공간 갤러리)의 JSON/본문 문자열에 파일 이름이 나타나지 않는 객체가 **운영 11개(94,064,562 B), 테스트 11개(71,414,788 B)** 발견됐다. 이는 단순 문자열 비교로 구한 **삭제 후보**이지 사용하지 않는 파일로 확정된 것이 아니다. 비공개 원본, 외부 공유 URL, 임시 편집 이미지일 수 있다.
+- 특히 `key-visual` 공개 변환물 중 운영 4개(67,401,794 B), 테스트 6개(65,118,544 B)는 추가 확인 우선 대상이다. `key-visual-originals`, `book-originals` 등 비공개 원본은 보존한다.
+- Supabase 관리 연결에서 Storage 파일 객체 삭제 액션이 제공되지 않아 실제 대용량 스토리지 객체는 **삭제하지 않았다**. SQL로 `storage.objects` 행만 삭제하면 S3 파일이 남아 비용이 지속될 수 있으므로 엄격히 금지한다. 공식 문서: https://supabase.com/docs/guides/storage/management/delete-objects
+- DB 테이블 크기는 매우 작고 `public` 스키마의 백업/임시 테이블은 발견되지 않았다. 행사·도서·모임·SMS·분석 데이터, DB migration 및 RLS는 변경하지 않았다.
+- 기존 Vercel 배포본은 롤백·감사 목적을 보존했고, 안전한 삭제 동작을 지원하는 연결 도구도 확인되지 않아 삭제하지 않았다. Vercel Sandbox snapshot은 운영·테스트 프로젝트에서 각각 0개였다.
+- `kv-fast` 이미지, `kv-20261109` 이미지, `space-refresh` 22개, 폰트 및 파비콘은 현행 템플릿 또는 런타임의 fallback·동적 경로에서 참조되어 삭제 금지한다.
+
+### 추후 실제 스토리지 회수 절차
+1. 각 객체의 저장 경로, CMS·코드 참조, 외부 공유 여부 및 필요 원본 여부를 함께 확인한다. 단순 DB 텍스트 매치가 없다는 이유만으로 삭제하지 않는다.
+2. 필요하면 원본을 백업하고 정해진 보관기간을 확인한 다음, **Supabase Storage API `storage.from(bucket).remove([path])`** 또는 Storage 관리화면으로 삭제한다. SQL 직접 삭제는 하지 않는다.
+3. 객체 수·총 바이트 전후 비교, 공개 URL·콘텐츠 렌더링, 관리자 기능 및 운영/테스트 분리까지 검증 후 실제 확보한 저장량을 기록한다.
+4. 추가로 지원 도구가 제공되기 전까지 Storage 대용량 제거는 **미완료**로 취급하며, 이 절을 전체 정리 완료 기록으로 해석하지 않는다.
