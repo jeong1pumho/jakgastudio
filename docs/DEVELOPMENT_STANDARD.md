@@ -1,6 +1,6 @@
 # 작가작업실 JEJU 홈페이지 개발기준서
 
-2026-11-20 KST · v1.5 · 새 채팅에서 사용하는 유지보수 기준 및 확인 기록
+2026-11-21 KST · v1.6 · 새 채팅에서 사용하는 유지보수 기준 및 확인 기록
 
 ## 1. 새 채팅에서 바로 적용할 작업 범위
 
@@ -314,3 +314,16 @@
 - `20261107104433` sms_notification_new_signup_email_trigger_20261107
 - `20261112045552` add_recommended_books_and_key_visual
 
+
+
+## 2026-11-21 운영 방문 분석 추가 (v1.6)
+
+- 사용자가 **운영사이트 우선 개발·배포, 테스트사이트 추후 반영**을 승인했다. 이 범위는 본 변경 1회에 한정하며 이후 기본 수정 대상은 여전히 테스트다.
+- 운영 관리자 Top에 '방문 분석'(/admin/analytics.html) 신설. Google Analytics 4 기존 추적·보고서 함수와 운영 키는 유지했다.
+- Microsoft Clarity는 별도 통계이며 기존 GA4 및 자체 추적 데이터와 합산하지 않는다. **2026-11-21 기준 CLARITY_PROJECT_ID와 CLARITY_API_TOKEN은 미등록**이어서 Clarity 실제 수집과 보고서는 아직 연동 대기 상태다.
+- 정기 Clarity API 수집은 기존 /api/admin 함수에서 /api/cron-clarity rewrite로 처리한다. Vercel Hobby 함수 12개 제한으로 2개 추가 API 파일을 제거하고 lib 모듈로 통합했다. 1일 1회 4요청(Overall·Channel·Source·URL), DB 중복 예약, 관리자 조회에서는 Clarity API 호출 없음.
+- 자체 페이지뷰·클릭·이동 구간은 운영 공개 페이지의 동의 선택 시에만 집계. 분석 입력값/쿼리문자열/개인 식별자 미저장. 상세 방문자 이동 경로를 복원하는 시스템이 아니라 개별 이동 구간의 건수 집계다.
+- 운영 Supabase에 public.visit_daily_counts와 public.visit_clarity_snapshots, analytics_private 접근 검증·중복 방지 테이블 및 제한된 RPC를 신규 구축. 공개 통계 테이블은 RLS 활성화, 관리자 읽기만 허용.
+- 운영 Vercel Production에는 VISIT_ANALYTICS_INGEST_SECRET 및 CRON_SECRET 등록. Clarity 프로젝트 자격 증명은 직접 발급 후 등록 및 별도 재배포 필요. 토큰을 저장소·문서에 기록하지 않는다.
+- 첫 Vercel 배포(1a6f69d)는 Hobby의 서버리스 함수 수 초과로 실패. 수정 76b5595는 기존 /api/admin 함수로 통합해 READY 배포를 확인했다. 적용 점검 및 향후 SHA는 실제 Vercel 조회 결과에 따라 기록한다.
+- 추가 검증 필요: 관리자 실로그인 및 GA4 비교, 동의 후 방문 통계 증가, Clarity 프로젝트 생성/실수집, 개인정보처리방침 외부 처리 고지, 브라우저 추적 차단 영향을 점검한다.

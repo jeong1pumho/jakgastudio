@@ -50,6 +50,17 @@ document.addEventListener('click',e=>{
  else if(a.matches('.sc-day'))detail='캘린더 날짜';
  if(detail)emit('click',page,detail);
 },{passive:true});
+// A visitor can withdraw or renew analytics consent without clearing site data.
+const settings=document.createElement('button');
+settings.type='button';settings.textContent='방문 분석 설정';
+settings.style.cssText='border:0;background:transparent;color:#75685d;cursor:pointer;font:12px/1.5 system-ui,sans-serif;text-decoration:underline;padding:6px';
+settings.addEventListener('click',()=>{
+ const choice=window.confirm('추가 방문 분석(Microsoft Clarity 및 페이지 이동·클릭 집계)에 동의하시겠습니까?\n확인: 동의 / 취소: 거부');
+ put(ck,choice?'yes':'no');location.reload();
+});
+const footer=document.querySelector('footer');
+if(footer)footer.append(settings);
+else{settings.style.cssText+=';position:fixed;z-index:99998;bottom:6px;right:6px;background:#fff';document.body.append(settings);}
 if(get(ck)==='yes'){start();return}if(get(ck)==='no')return;
 const banner=document.createElement('aside');
 banner.setAttribute('aria-label','방문 분석 동의');
