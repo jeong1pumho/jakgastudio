@@ -1,6 +1,6 @@
 # 작가작업실 JEJU 홈페이지 개발기준서
 
-2026-11-21 KST · v1.6 · 새 채팅에서 사용하는 유지보수 기준 및 확인 기록
+2026-11-21 KST · v1.7 · 새 채팅에서 사용하는 유지보수 기준 및 확인 기록
 
 ## 1. 새 채팅에서 바로 적용할 작업 범위
 
@@ -327,3 +327,12 @@
 - 운영 Vercel Production에는 VISIT_ANALYTICS_INGEST_SECRET 및 CRON_SECRET 등록. Clarity 프로젝트 자격 증명은 직접 발급 후 등록 및 별도 재배포 필요. 토큰을 저장소·문서에 기록하지 않는다.
 - 첫 Vercel 배포(1a6f69d)는 Hobby의 서버리스 함수 수 초과로 실패. 수정 76b5595는 기존 /api/admin 함수로 통합해 READY 배포를 확인했다. 적용 점검 및 향후 SHA는 실제 Vercel 조회 결과에 따라 기록한다.
 - 추가 검증 필요: 관리자 실로그인 및 GA4 비교, 동의 후 방문 통계 증가, Clarity 프로젝트 생성/실수집, 개인정보처리방침 외부 처리 고지, 브라우저 추적 차단 영향을 점검한다.
+
+
+## 2026-11-21 운영 관리자 Clarity 우선 표시 (v1.7)
+
+- 사용자 요청에 따라 운영 관리자 홈 방문 분석 카드 데이터 출처를 기존 GA4에서 **Microsoft Clarity 일일 캐시**로 교체했다. 카드 제목은 'Microsoft Clarity · 최근 24시간', 상세 링크는 '/admin/analytics.html'이며 카드 갱신 시 Clarity 외부 API를 직접 호출하지 않는다.
+- 캐시 스냅샷이 없다면 수치를 만들어 내거나 GA4 지표를 대신 표시하지 않고 'Clarity 집계 대기'로 출력한다. 첫 수집 이후 세션·방문자와 유입 채널/출처를 표시한다.
+- 관리자 '/admin/analytics.html'의 섹션 순서는 **Microsoft Clarity → 홈페이지 자체 행동 분석 → Google Analytics 4**. GA4 추적 스크립트 및 관리 보고서 기능은 유지하며 데이터는 합산하지 않는다.
+- 이전 v1.6 기록 당시 미등록이던 CLARITY_PROJECT_ID 및 CLARITY_API_TOKEN은 이후 운영 Vercel Production에 등록·재배포되었다. 토큰 값은 문서나 GitHub에 포함하지 않는다.
+- 테스트 저장소 및 테스트 Vercel 프로젝트는 변경하지 않는다.
