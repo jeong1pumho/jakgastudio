@@ -112,5 +112,11 @@
       "destination": "/",
       "permanent": true
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/clarity-collect",
+      "schedule": "15 1 * * *"
+    }
   ]
 }
