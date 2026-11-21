@@ -1,6 +1,6 @@
 # 작가작업실 JEJU 홈페이지 개발기준서
 
-2026-11-21 KST · v1.9 · 새 채팅에서 사용하는 유지보수 기준 및 확인 기록
+2026-11-21 KST · v2.0 · 새 채팅에서 사용하는 유지보수 기준 및 확인 기록
 
 ## 1. 새 채팅에서 바로 적용할 작업 범위
 
@@ -21,7 +21,7 @@
 
 ## 2. 환경별 연결표
 
-배포 식별자는 2026-11-17 조회 당시의 기록이다. 2026-11-18 책방 문구 변경 커밋은 테스트 `2f783ff`, 운영 `eb4168a`이다.
+배포 식별자는 2026-11-21 최종 캘린더 색상 반영 코드 기준의 스냅샷이다. 이 문서 자체의 운영 GitHub 저장소 반영 시 별도 자동 배포가 발생할 수 있으므로, 작업 전 최신 배포 ID는 항상 재조회한다. 2026-11-18 책방 문구 변경 커밋은 테스트 `2f783ff`, 운영 `eb4168a`인 이전 기록이다.
 
 | 항목 | 테스트 | 운영 |
 |---|---|---|
@@ -31,8 +31,8 @@
 | Vercel 프로젝트 | `jakgastudio-temp` / `prj_8SUBanJRucDwen3xIjvE1LcYWLwb` | `jakgastudio` / `prj_IHfg8sOhCAj7bbKyo6zEbrNqcmmd` |
 | Supabase 프로젝트 ref | `qrbavxempotptnmflqoq` | `dolgltddpnxzwlqigtjw` |
 | Vercel 실행환경 | Node.js 24.x, 프레임워크 미지정 | Node.js 24.x, 프레임워크 미지정 |
-| 최신 READY 배포에 기록된 Git SHA | [4a84238](https://github.com/jeong1pumho/jakgastudio-temp/commit/4a84238d9f5912617fe94fce51c18c1c9ccd3756) | [821789a](https://github.com/jeong1pumho/jakgastudio/commit/821789ab4caec0f8592f64ccf61511f12a5ac9cc) |
-| Vercel 배포 기록 | [dpl_2riuzURQ6gfkSUSF3tBDWUiG33yh](https://vercel.com/jeong1pumho/jakgastudio-temp/2riuzURQ6gfkSUSF3tBDWUiG33yh) | [dpl_BuBFY9ZsV8ePgUV3aCPuHhbB7mJM](https://vercel.com/jeong1pumho/jakgastudio/BuBFY9ZsV8ePgUV3aCPuHhbB7mJM) |
+| 최종 색상 변경 Git SHA (문서 게시 직전) | [5b1b7e6](https://github.com/jeong1pumho/jakgastudio-temp/commit/5b1b7e62d22f9fc84e4d1398fabc9f1b5dc17673) | [8cdde87](https://github.com/jeong1pumho/jakgastudio/commit/8cdde87ab0057312ae15e6f56f06892a4cdd9524) |
+| 최종 색상 변경 Vercel READY (문서 게시 직전) | dpl_FWsBTAkPzztP8Sa1mAPjqayxBvuq | dpl_6wQQ48orRcZG14BHqUbPuBChPUnG |
 
 **확인.** 두 GitHub 저장소는 공개다. Vercel의 두 프로젝트는 같은 팀 `team_2v57oR0ikHZoysLjevLtCfoI`에 있으며 최근 배포 메타데이터는 각기 다른 저장소를 가리킨다. **두 프로젝트 모두 `main` 배포가 Vercel에서 `production`으로 표시된다.** 작업 전 프로젝트 ID와 연결 저장소를 확인한다. 배포 환경명이 `production`이어도 테스트 프로젝트에 속할 수 있다. 배포의 `READY`와 실제 도메인 응답은 별도로 확인한다. 기준일 두 사이트 홈은 HTTP 200이었고, 각 공개 HTML에서 각자의 Supabase 호스트가 관측됐다.
 
@@ -85,7 +85,7 @@
 - **행사 상세와 메모 공개 범위.** 등록 구분이 모임(`meeting`) 또는 특별일정(`custom`)인 일정에는 날짜별 화면에 ‘행사 상세 보기’를 표시한다. 운영 주체는 판정 조건에 포함하지 않는다. 공개 기간 안의 개별 상세에서만 해당 일정의 메모를 읽고 허용된 서식으로 출력한다. 메모가 비어 있으면 본문 영역을 생략한다. 월별 일정 API에는 메모를 포함하지 않는다.
 - **상세 하단.** 제목 아래에 일시·구분·장소를 요약하고, 메모와 안내문 아래에 ‘모임·행사 확인’ 링크 하나를 두어 `/news`로 연결한다. 관리자 입력란에는 구분별 공개 여부를 안내한다. [운영 반영 기록](https://github.com/jeong1pumho/jakgastudio/commit/1ad95369ac99ca6cafd9a18ad49709ed978693da)
 
-- **일정 제목 표기.** 월간 캘린더의 날짜별 일정, 개별 일정 상세, 홈 주간 일정 및 예정 일정에서 제목을 표시할 때 `schedule_events.title`의 한글·영문 표기를 그대로 사용한다. `작가작업실 JEJU`와 `작가작업실 제주`를 자동 치환하지 않는다. HTML 출력 시에는 기존 이스케이프 처리를 유지한다.
+- **일정 제목 표기 (v2.0 기준).** 공개·관리자 월간 칸에서 meeting과 custom은 schedule_events.title 원문을 표시하고, rental은 원문 대신 **대관**, 자동 계산 free는 **자유방문**을 표시한다. closure는 휴무, opening은 개점 표식을 유지한다. 날짜별 상세와 개별 행사 상세는 제목 원문을 유지한다. 제목 내 JEJU/제주 표기를 자동 치환하지 않고 HTML 이스케이프도 유지한다. 홈 주간 일정 등의 제목 로직은 별도로 확인한다.
 - **검수 사례.** 운영 캘린더의 2026-12-10 10:00~12:00 일정에서 관리자와 공개 화면의 제목이 모두 `낭독클럽 | 작가작업실 JEJU`인지 확인한다. [운영 일정 상세](https://www.jakgastudio.com/calendar/events/6fde6fb2-3d37-4eaf-a7e4-ca51041aae43) · [운영 반영 기록](https://github.com/jeong1pumho/jakgastudio/commit/8ddbb77d74b0c9efc96b4c7a305b02f48f936cdc)
 
 - **확인.** 영업 기준 09:00–17:00, 점심 제외 12:00–13:00, 일·월 정기휴무. 정기휴무·공휴일을 제외한 화~토 자유방문은 09:00–12:00와 13:00–17:00에서 등록 일정과 겹친 시간을 뺀 결과다. 하루 영업시간 전체가 비면 점심 제외 안내와 함께 09:00–17:00로 묶어 표시한다. 정기휴무·공휴일에는 등록된 특별 일정이 표시되고 자유방문 시간은 생성되지 않는다. 저녁 일정도 등록할 수 있다.
@@ -172,7 +172,7 @@
 3. **테스트 반영.** 저장소 쓰기 승인을 확보한 범위에서, 또는 이미 승인된 테스트 배포 방식으로 반영한다. GitHub SHA → Vercel READY → 테스트 URL → 테스트 ref를 확인한다. 테스트 DB 변경은 마이그레이션 diff와 적용 순서를 기록한다. 영향을 받는 UI에서 성공·실패·권한·이전 데이터 케이스를 검증한다.
 4. **운영 승인 준비.** 테스트 URL, 변경 스크린샷, 반영할 Git diff·SHA, 운영 Vercel/Supabase 대상, DB·Storage 변경 여부, 백업, 복구 후보 배포를 제시한다. 운영 코드와 DB 양쪽이 바뀌면 이전 코드·신규 스키마 및 신규 코드·이전 스키마의 호환 범위를 확인한다. 구조 변경은 가능하면 추가 → 전환 → 기존 구조 정리 순으로 분리한다.
 5. **승인된 운영 반영·검증.** 승인 범위 그대로 배포한다. 공개 도메인의 응답, canonical, 관리자 인증 경로, 오류 로그, DB 연결을 확인한다. 운영에 입력이 필요한 검수는 별도 승인된 데이터·수신처로 진행한다. 배포와 실제 공개 상태, DB·알림 확인 결과를 배포 기록에 적는다.
-6. **배포·자산 정리.** 검수된 정상 배포 중 복구 후보를 지정하고, 실제 복구 자격과 접근을 확인한 뒤 정리한다. 삭제 후보의 URL·외부 참조와 복구 후보를 기록한다. Git 자산 검색만으로 DB·CMS의 참조를 확인할 수 없으므로 공개 버킷이나 이전 경로도 조사한다.
+6. **배포·자산 정리.** 현재 도메인이 연결된 최신 READY와 직전 정상 롤백 후보 최소 1개를 보존한 뒤 삭제 후보의 외부 URL·연동 참조를 확인한다. 실제 삭제 실행 및 사후 목록 확인이 끝나기 전까지 정리 완료라고 기록하지 않는다. Vercel 배포 삭제는 해당 배포의 Instant Rollback 및 개별 URL에 영향을 줄 수 있다.
 
 ## 8. 백업과 장애 복구
 
@@ -196,7 +196,7 @@
 |---|---|
 | 홈·공통 메뉴 | 메뉴 7개와 경로 정상. PC·모바일에서 KV 카피 3줄, CI 간격, 첫 사진 및 메뉴 조작 정상 |
 | NEWS·추천 도서 | 상태·정렬·페이지 경계·대표 사진·직접 상세 URL · 기존 데이터 공개 여부 확인 |
-| 캘린더 | 개점 전, 다음 달과 그 이후 경계, 일·월, 공휴일, 종일 휴무, 인접·중복 일정, 구분별 메모 공개 범위, 상세 하단 `/news` 링크 확인 |
+| 캘린더 | 개점 전, 다음 달과 그 이후 경계, 일·월, 공휴일, 종일 휴무, 인접·중복 일정, meeting/custom 제목 원문과 rental의 '대관' 표시, 승인된 5색 팔레트, 구분별 메모 공개 범위, 상세 하단 /news 링크 확인 |
 | 관리자 | 로그아웃과 잘못된 세션, 비관리자 제한, 관리자 갱신, 업로드 후 저장·재조회 확인 |
 | 알림 | 테스트 가입·해지·수동등록, 잘못된 OTP, 만료·재사용, 거부 대상 제외, 발송 재시도·중복, 실제 발송 대상 제한 확인 |
 | SEO | 운영 www canonical, 운영 robots/sitemap, 테스트 noindex, 관리자 제외, 공유 미리보기 확인 |
@@ -372,3 +372,51 @@
 - 제외는 **브라우저/기기 단위**로 유지되므로 관리자 본인이 사용하는 각 PC·휴대폰·브라우저에서 운영 관리자 홈 접속 및 관리자 인증을 1회 수행해야 한다. 관리자 로그인 전 방문을 신원 확인 없이 자동 판별할 수는 없다. 쿠키/사이트 데이터 삭제, 비공개 창, 새 브라우저는 새 설정이 필요하다.
 - 운영코드 커밋 `987434b289cf96d09077cf8da03c06b8152dd1df`, 테스트코드 최종 커밋 `d0885593801263a5e7c8eb0a707091ef42f7465c`. 운영·테스트 Vercel READY 및 각 /admin/, /news, 스크립트 200 확인. 제외 쿠키/기존 로컬 제외 플래그의 모의 실행에서 Clarity·자체 추적 요청 0건 확인.
 - Microsoft Clarity IP 차단은 다수 사용자를 같은 IP에서 잘못 제외할 수 있고 동적 IP·모바일 환경에서 안정적이지 않으므로 적용하지 않았다. 실제 사용자 세션 기반 엔드투엔드 확인은 관리자 본인의 브라우저에서 수행해야 한다.
+
+
+## 2026-11-21 최종 월간 캘린더·배포 정리 기준 (v2.0)
+
+### 월간 캘린더 표시 계약 — 테스트·운영 동일
+
+- 캘린더 구분 meeting의 관리자 선택 표시명은 기존 '모임'에서 **작가작업실 JEJU**로 변경했다. 데이터 저장값 meeting은 유지하며 DB 데이터를 다시 입력하지 않는다.
+- 사용자와 관리자의 월간 달력: **meeting(자체행사)·custom(구분 직접 입력)은 관리자의 모임·일정 타이틀 원문을 출력한다.** rental은 제목 대신 **대관**, 자동 free는 **자유방문**이라고 출력한다. custom의 '추가 구분 이름'(예: 북나이트 이벤트)은 월간 제목을 대체하지 않는다.
+- 월별 긴 제목은 최대 두 줄로 생략하고, 마우스를 올리면 제목 속성으로 전체를 확인할 수 있다. 날짜별 상세의 메모와 시간, 행사 상세 보기 버튼 등은 기존 기능을 유지한다.
+- 행사 상세 페이지(api/calendar-page.js)는 공통 Top 메뉴(nav('/calendar')), 기존 파비콘(faviconLinks()), 모바일 메뉴 스크립트(home-menu.js)를 사용한다.
+- 주요 구현 파일: admin/schedule.html, assets/schedule.js, lib/month-calendar-ssr.js, lib/month-calendar.html, api/calendar-page.js, assets/schedule.css, lib/home-template.html, lib/handlers/home.js.
+
+### 확정된 5개 색상
+
+| 표시 우선순위 | 구분 | 카드 배경색 | 카드 글자색 | 범례 점·상세 강조선 |
+|---|---|---|---|---|
+| 1 | 작가작업실 JEJU (meeting) | #F0EAF3 | #795682 | #8E6D93 |
+| 2 | 대관 (rental) | #F8E0CF | #85523A | #B87852 |
+| 3 | 자유방문 (free) | #E2F0E4 | #416F50 | #6E9778 |
+| 4 | 구분 직접 입력 (custom) | #F2EDE7 | #78675A | #9C8B7B |
+| 5 | 임시휴무 (closure) | #F8F7F5 | #9A938C | 범례 #B6B2AE / 상세선 #B9B5AF (기존 유지) |
+
+- 작가작업실 JEJU는 사용자 최종 컨펌에 따라 **진한 보라색이 아닌 기존 연보라색 농도**를 유지한다. 자유방문은 연녹색, 대관은 연살구색, custom은 연베이지색으로 구분한다.
+- CSS는 assets/schedule.css의 .sc-dot, .sc-entry, .sc-detail 및 각 구분 클래스로 관리한다. 관리자 일정 목록의 .tag.meeting/.tag.rental/.tag.custom도 위 팔레트로 맞췄다. 관리자 .tag.closure(#EEECE9, #79736E)와 개점 표식 색은 기존 유지다.
+- CSS 캐시 갱신 버전: /assets/schedule.css?v=calendar-palette-approved-20261121 (공개 lib/home-template.html 및 관리자 admin/schedule.html 동일).
+
+### 최종 코드·배포 기록
+
+| 항목 | 테스트 | 운영 |
+|---|---|---|
+| 최종 팔레트 Git 커밋 | 5b1b7e62d22f9fc84e4d1398fabc9f1b5dc17673 | 8cdde87ab0057312ae15e6f56f06892a4cdd9524 |
+| 색상 최종 배포 READY | dpl_FWsBTAkPzztP8Sa1mAPjqayxBvuq | dpl_6wQQ48orRcZG14BHqUbPuBChPUnG |
+| 도메인 | jakgastudio-temp.vercel.app | www.jakgastudio.com |
+
+코드 이관 과정의 주요 커밋: 테스트 fd0eca2 → a2cdce7 → 3a2d6e4 → a61d6ce → 6f8cf73 → 5b1b7e6; 운영 73600ab(기본 기능 이관) → 0f84ff8(custom의 관리자 제목) → 80cc4c5(색상 교체) → 8cdde87(최종 팔레트). 최종 공개 CSS와 홈 템플릿의 Git blob SHA 일치가 확인됐다. 관리자 HTML은 운영에만 custom 제목 수정이 있어 파일 전체가 반드시 일치하지는 않는다.
+
+수정은 코드·스타일·캐시 버전에 한정했다. Supabase DB 스키마/행, Storage, Auth, 알림 설정은 변경하지 않았다. GitHub 코드 구문·모의 렌더링·배포 READY는 검증했으나, 실제 브라우저의 전체 관리자 로그인·모바일 표시 검증은 별도로 필요하다. **기준서 문서 자체를 운영 GitHub에 게시하면 신규 운영 배포가 추가되므로, 최신 배포 번호는 게시 후 다시 확인한다.**
+
+### 이전 Vercel 배포본 정리 상태
+
+- 2026-11-21 문서 갱신 전 조회: 테스트 배포 **20건**, 운영 배포 **29건**.
+- 최신 서비스 배포 1건과 직전 정상 롤백 버전 1건을 각각 보존하는 경우, **정리 후보: 테스트 18건 + 운영 27건 = 45건**. 이전 배포가 외부 공유 URL/PR/연동에 참조되는지 확인해야 한다.
+- 당시 보존 후보: 테스트 최신 dpl_FWsBTAkPzztP8Sa1mAPjqayxBvuq, 직전 dpl_6v3MMC9NRY1MmBfGCCdqnkBrmeqP; 운영 최신 dpl_6wQQ48orRcZG14BHqUbPuBChPUnG, 직전 dpl_5ZMdiYJe4zsoEEQD3k928Rhb3qWF. 문서 게시 후 운영 최신 배포가 바뀔 수 있다.
+- **실행 상태: 삭제 미완료.** 현재 연결된 Vercel 관리 도구에 배포 삭제 작업이 없어 두 프로젝트의 이전 배포를 삭제하지 않았다. 45건은 삭제 완료가 아닌 **정리 후보 수**이다.
+- 수동 처리 절차: Vercel Dashboard → 각 프로젝트(jakgastudio-temp / jakgastudio) → Deployments → 이전 배포 선택 → ... → Delete. 공식 가이드: https://vercel.com/docs/deployments/managing-deployments
+- 삭제 시 예전 개별 URL이 끊기고 해당 배포로 Instant Rollback을 할 수 없으므로, 최신 서비스와 롤백 후보·외부 링크 사용 여부를 확인한 후 삭제한다. 삭제 실행 후 재조회 전에는 정리 완료로 보고하지 않는다.
+
+**v2.0 개정 기록 (2026-11-21 KST).** 기존 v1.9의 배포, GA4/Clarity, 인증, Supabase, 미디어, SMS 및 장애복구 기준은 보존하면서 캘린더 제목 규칙과 색상·배포 기준선을 갱신했다. 배포본 삭제는 권한/지원 도구가 없어 별도 수동 작업으로 명시했다.
