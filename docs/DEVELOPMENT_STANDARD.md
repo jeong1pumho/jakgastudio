@@ -1,6 +1,6 @@
 # 작가작업실 JEJU 홈페이지 개발기준서
 
-2026-11-21 KST · v2.0 · 새 채팅에서 사용하는 유지보수 기준 및 확인 기록
+2026-11-22 KST · v2.1 · 새 채팅에서 사용하는 유지보수 기준 및 확인 기록
 
 ## 1. 새 채팅에서 바로 적용할 작업 범위
 
@@ -21,7 +21,7 @@
 
 ## 2. 환경별 연결표
 
-배포 식별자는 2026-11-21 최종 캘린더 색상 반영 코드 기준의 스냅샷이다. 이 문서 자체의 운영 GitHub 저장소 반영 시 별도 자동 배포가 발생할 수 있으므로, 작업 전 최신 배포 ID는 항상 재조회한다. 2026-11-18 책방 문구 변경 커밋은 테스트 `2f783ff`, 운영 `eb4168a`인 이전 기록이다.
+아래 환경 연결표의 Git SHA와 배포 ID는 2026-11-21 캘린더 색상 반영 당시의 **과거 스냅샷**이다. 2026-11-22 배포 정리 및 GitHub Actions 수정 후 최신 기준은 문서 마지막 v2.1 항목을 우선한다. 이 문서 자체의 운영 GitHub 저장소 반영 시 별도 자동 배포가 발생할 수 있으므로, 작업 전 최신 배포 ID는 항상 재조회한다. 2026-11-18 책방 문구 변경 커밋은 테스트 `2f783ff`, 운영 `eb4168a`인 이전 기록이다.
 
 | 항목 | 테스트 | 운영 |
 |---|---|---|
@@ -202,6 +202,7 @@
 | SEO | 운영 www canonical, 운영 robots/sitemap, 테스트 noindex, 관리자 제외, 공유 미리보기 확인 |
 | GA4 분석 | 운영·테스트 측정 ID 분리, 운영 www에서만 추적, 관리자·API 경로 제외, 개인 브라우저 집계 제외, 운영 환경변수 범위, 보고서 인증, 실시간 page_view 수신, 다음 날 7일 카드 대조 |
 | 격리 | 테스트에서 실행한 변경은 테스트 ref/버킷/계정/수신처에 기록. 운영 공개 페이지는 읽기 검증으로 상태 비교 |
+| GitHub Actions SEO | 두 저장소 .github/workflows/seo-check.yml은 Checkout → npm ci → node seo-check.cjs 순서. 검사 성공과 Vercel 배포 성공을 별도로 확인 |
 
 ### 복원한 주요 결정
 
@@ -415,8 +416,48 @@
 - 2026-11-21 문서 갱신 전 조회: 테스트 배포 **20건**, 운영 배포 **29건**.
 - 최신 서비스 배포 1건과 직전 정상 롤백 버전 1건을 각각 보존하는 경우, **정리 후보: 테스트 18건 + 운영 27건 = 45건**. 이전 배포가 외부 공유 URL/PR/연동에 참조되는지 확인해야 한다.
 - 당시 보존 후보: 테스트 최신 dpl_FWsBTAkPzztP8Sa1mAPjqayxBvuq, 직전 dpl_6v3MMC9NRY1MmBfGCCdqnkBrmeqP; 운영 최신 dpl_6wQQ48orRcZG14BHqUbPuBChPUnG, 직전 dpl_5ZMdiYJe4zsoEEQD3k928Rhb3qWF. 문서 게시 후 운영 최신 배포가 바뀔 수 있다.
-- **실행 상태: 삭제 미완료.** 현재 연결된 Vercel 관리 도구에 배포 삭제 작업이 없어 두 프로젝트의 이전 배포를 삭제하지 않았다. 45건은 삭제 완료가 아닌 **정리 후보 수**이다.
+- **당시(2026-11-21 문서 작성 시점) 실행 상태: 삭제 미완료.** 그 시점에는 연결된 Vercel 관리 도구에 삭제 기능이 없어 실행하지 못했다. **이후 Work 작업에서 정리됐으며 실제 잔존 목록과 감소 건수는 v2.1 항목을 따른다.** 이때의 45건은 문서 게시 전 정리 후보 수이지 실제 삭제 건수가 아니다.
 - 수동 처리 절차: Vercel Dashboard → 각 프로젝트(jakgastudio-temp / jakgastudio) → Deployments → 이전 배포 선택 → ... → Delete. 공식 가이드: https://vercel.com/docs/deployments/managing-deployments
 - 삭제 시 예전 개별 URL이 끊기고 해당 배포로 Instant Rollback을 할 수 없으므로, 최신 서비스와 롤백 후보·외부 링크 사용 여부를 확인한 후 삭제한다. 삭제 실행 후 재조회 전에는 정리 완료로 보고하지 않는다.
 
-**v2.0 개정 기록 (2026-11-21 KST).** 기존 v1.9의 배포, GA4/Clarity, 인증, Supabase, 미디어, SMS 및 장애복구 기준은 보존하면서 캘린더 제목 규칙과 색상·배포 기준선을 갱신했다. 배포본 삭제는 권한/지원 도구가 없어 별도 수동 작업으로 명시했다.
+**v2.0 개정 기록 (2026-11-21 KST).** 기존 v1.9의 배포, GA4/Clarity, 인증, Supabase, 미디어, SMS 및 장애복구 기준은 보존하면서 캘린더 제목 규칙과 색상·배포 기준선을 갱신했다. 배포본 삭제는 **v2.0 문서 작성 당시** 연결 도구에 삭제 기능이 없어 미완료로 명시했다. 이후 사용자가 Work 모드에서 정리 완료를 보고했으며, 2026-11-22 Vercel 잔존 목록으로 검증한 결과를 v2.1에 기록했다.
+
+
+## 2026-11-22 배포 정리 후속 검증·GitHub Actions 복구 (v2.1)
+
+### 1. 2026-11-21 Work 모드의 Vercel 이전 배포 정리
+
+**실행 근거:** 사용자는 2026-11-21 별도의 Work 채팅에서 이전 Vercel 배포 삭제 작업을 완료했다고 보고했다. 해당 Work 채팅의 개별 삭제 실행 로그는 이 기준서 갱신 시 직접 확보하지 못했다. 아래 완료 범위는 **정리 전 목록과 2026-11-22 Vercel 프로젝트별 실제 잔존 목록을 대조한 검증 결과**다. 따라서 삭제된 각 배포의 URL 사용 여부·선택 사유까지 직접 확인했다고 주장하지 않는다.
+
+| 구분 | 2026-11-21 정리 전 | 2026-11-22 신규 CI 배포 제외 후 | 이전 목록 대비 감소 | 2026-11-22 현재 실제 배포 |
+|---|---:|---:|---:|---:|
+| 테스트 jakgastudio-temp | 20건 | 4건 | **16건** | **5건** |
+| 운영 jakgastudio | 30건 | 2건 | **28건** | **3건** |
+| 합계 | **50건** | **6건** | **44건** | **8건** |
+
+- 2026-11-21 개발기준서 v2.0 게시 직후의 기준은 테스트 20건·운영 30건이었다. 2026-11-22 GitHub Actions 설정 오류 수정으로 **테스트·운영 프로젝트에 신규 정상 배포가 각각 1건** 발생했다. 정리 전후 비교에서는 새 배포 2건을 제외했다.
+- 처음 계산한 **삭제 후보 46건(테스트 18건·운영 28건)은 계획 수량**이다. 실제 잔존 목록 기준으로 **테스트 16건·운영 28건, 총 44건이 감소**했다. 테스트에서 예상보다 2건이 더 남았다. 이를 전부 삭제했다고 기록하면 안 된다.
+- 현재 남은 **테스트 5건**: 최신 READY dpl_AsCLSvTb2EcLo7TguTxv8piLkbtX; 직전 READY dpl_FWsBTAkPzztP8Sa1mAPjqayxBvuq; 그 이전 READY dpl_6v3MMC9NRY1MmBfGCCdqnkBrmeqP; Preview/비-production 배포 dpl_BfPcakkHBdfoR9HgvmuihiRWZc93, dpl_4Y22u7xq1J5XSP1XYF3LvgqmWSma. 모두 조회상 READY이며 두 Preview 배포의 추가 보존 사유는 확인되지 않았다.
+- 현재 남은 **운영 3건**: 최신 READY dpl_7kYSm63XFytV13H1CK6hhC8eQe7m; 직전 READY dpl_7BPDsdNjwbF7aiYaGv1ygGyacDjR; 그 이전 READY dpl_6wQQ48orRcZG14BHqUbPuBChPUnG.
+- 현재 운영 alias www.jakgastudio.com 및 테스트 alias jakgastudio-temp.vercel.app은 최신 READY 배포에 연결된다. 운영·테스트 홈 및 월간 캘린더, 운영 sitemap.xml에 대한 후속 HTTP 확인 결과는 200이었다.
+- **추가 삭제 여부:** 테스트 Preview 2건 또는 이전 정상 롤백을 더 지우기 전에는 참조 URL·공유 여부·복구 전략을 재검증한다. 이 기록은 현재 서비스 배포와 Git 이력을 삭제하라는 지시가 아니다. 삭제된 과거 Vercel 배포의 개별 URL은 복구할 수 없을 수 있으나 GitHub 커밋 기록은 별개다.
+- 배포 재고는 변동된다. 코드 또는 문서 커밋이 새 배포를 만들 수 있으므로 **이 표는 v2.1 문서 게시 직전의 2026-11-22 조회 스냅샷**이다. 삭제 완료 기록과 현재 배포 건수는 구분해 추후 갱신한다.
+
+### 2. 2026-11-22 GitHub Actions 'SEO sitemap and release checks' 오류 해결
+
+- 발생: 2026-11-21 여러 푸시에서 두 저장소의 SEO 자동 검사에 failure 발생. 확인한 오류는 Error: Cannot find module 'korean-lunar-calendar' (MODULE_NOT_FOUND)이며, 실행이 SEO 판정 전에 중단됐다. Vercel 홈페이지 배포 실패와는 **별개**다.
+- 원인: 행사 상세 공통 메뉴 적용으로 api/calendar-page.js → lib/home-content.js → lib/holidays.js 의존 경로가 추가됐다. package.json과 package-lock.json에는 korean-lunar-calendar 0.4.0이 있었지만 GitHub Actions에서 npm 의존성 설치 없이 바로 node seo-check.cjs를 실행했다.
+- 수정 파일: **두 저장소 모두 .github/workflows/seo-check.yml 한 파일씩만 수정**. Checkout repository → **Install dependencies: npm ci** → Verify SEO release invariants: node seo-check.cjs 순서로 변경. 기존 SEO 검사 내용과 홈페이지 로직, Supabase DB·Storage·Auth·알림 설정은 변경하지 않았다.
+- 테스트 Git 커밋: c17fb853b6afd3cdd702eee120e72f7014911880. GitHub Actions 실행 **44971838683 / success**: https://github.com/jeong1pumho/jakgastudio-temp/actions/runs/44971838683
+- 운영 Git 커밋: 7f572473531496648366a813e5758f4a5e4be0cd. GitHub Actions 실행 **44971874145 / success**: https://github.com/jeong1pumho/jakgastudio/actions/runs/44971874145
+- GitHub Actions에서 패키지 설치 단계와 SEO 불변조건 검사 단계가 모두 success인 것을 확인했다. 후속 Vercel READY는 테스트 dpl_AsCLSvTb2EcLo7TguTxv8piLkbtX, 운영 dpl_7kYSm63XFytV13H1CK6hhC8eQe7m이다.
+- 실서비스 후속 확인: 운영 /, /calendar, /sitemap.xml 및 테스트 /, /calendar 모두 HTTP 200. **과거 실패 메일·실행 기록은 이력으로 남아도 수정 이후 새 검사 상태는 success**다.
+
+### 3. 새 작업 시 유지보수 기준
+
+1. GitHub Actions에서 Node 모듈을 직접 require하는 검사 스크립트를 실행할 때는 lockfile에 맞춰 npm ci를 먼저 실행한다. 의존성 추가 시 package.json과 package-lock.json을 함께 관리한다.
+2. GitHub Actions success(코드 검사)와 Vercel READY(배포), 실제 운영 URL의 HTTP·페이지 동작은 **서로 다른 검증 항목**이다. 하나의 성공으로 다른 두 가지를 대체하지 않는다.
+3. Vercel 이전 배포 정리 시 최신 서비스 READY와 최소 1개의 검증된 정상 롤백 후보를 보존한다. '예상 삭제 후보'와 '실제 잔존 건수 기반 감소'를 구분하고 Preview를 포함해 전수 조회한다.
+4. 기준서 v2.1의 GitHub 반영은 운영 main 커밋을 새로 생성한다. 그에 따라 운영 배포가 새로 발생할 수 있으므로 현재의 최신 운영 배포 ID·프로젝트 배포 건수는 문서 게시 후 다시 확인한다.
+
+**v2.1 개정 기록 (2026-11-22 KST).** v2.0의 기능·DB·분석·디자인·캘린더 기준을 보존하면서, Work 배포 정리의 관측 결과와 남은 Preview 2건, SEO Actions 오류 원인·해결·테스트/운영 성공 기록을 추가했다.
